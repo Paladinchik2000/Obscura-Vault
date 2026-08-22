@@ -16,3 +16,11 @@
 local.properties
 .env
 debug.keystore
+index.html
+package.json
+*.lock
+public/
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+.env.obscura

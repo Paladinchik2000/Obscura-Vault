@@ -1,1 +1,7 @@
-/build
+index.html
+package.json
+*.lock
+public/
+vite.config.ts
+tailwind.config.js
+postcss.config.js
