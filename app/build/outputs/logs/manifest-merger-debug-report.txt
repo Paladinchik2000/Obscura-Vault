@@ -1,0 +1,484 @@
+-- Merging decision tree log ---
+manifest
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:2:1-53:12
+INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:2:1-53:12
+INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:2:1-53:12
+INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:2:1-53:12
+MERGED from [androidx.navigation:navigation-common:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d0f3617c689bf159938b4084f2cb8e4b\workspace\transformed\navigation-common-2.8.9\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-runtime:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\1c03fb7e5be76675ce70f7461a6f7ba6\workspace\transformed\navigation-runtime-2.8.9\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-common-ktx:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e1fbbeb7a585c92b12be18ea87ecd377\workspace\transformed\navigation-common-ktx-2.8.9\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\476b4ae5f9ef3c5a248aaaa23fb06f6b\workspace\transformed\navigation-runtime-ktx-2.8.9\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-compose:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e5522b5407b9235c341053b1f895bd6a\workspace\transformed\navigation-compose-2.8.9\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.biometric:biometric-ktx:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\c0549c891ab5d653ac8ccfac99f61850\workspace\transformed\biometric-ktx-1.2.0-alpha05\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.credentials:credentials:1.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2a11d08a699b196545ecbc3e891a4e81\workspace\transformed\credentials-1.5.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.biometric:biometric:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9cf728ec08d9bf070e2a5d9b5cad8d8e\workspace\transformed\biometric-1.2.0-alpha05\AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.appcompat:appcompat:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\891bc8288282f4ba9539f123983bf8f2\workspace\transformed\appcompat-1.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.fragment:fragment:1.2.5] C:\Users\nikit\.gradle\caches\9.3.1\transforms\472ac06c7e0c70d304ca6f4fbf4a2b0b\workspace\transformed\fragment-1.2.5\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.compose.material3:material3-android:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\48023b21dce95b98f90021ce4d7837b8\workspace\transformed\material3-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\872961864c5e5bda7aa27eaebe16d089\workspace\transformed\customview-poolingcontainer-1.0.0\AndroidManifest.xml:17:1-23:12
+MERGED from [androidx.core:core-ktx:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\08d874a7fd4d2b379508416c6914cb22\workspace\transformed\core-ktx-1.18.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.autofill:autofill:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\f41c2df0fb5c48aabaff32b72f116445\workspace\transformed\autofill-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\baaccaee1a5649c377a7f4596259bfe7\workspace\transformed\ui-tooling-data-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2d6f9178519b67ef6ae0d7ce27e0a063\workspace\transformed\ui-geometry-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ac12e6be2381715b491ac299d8814889\workspace\transformed\ui-tooling-preview-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.foundation:foundation-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0b1f4e9a137d393a1d024d8e6b2b5e13\workspace\transformed\foundation-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-core-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\49d2cfc43619a18238bfcbbed949aeab\workspace\transformed\animation-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-util-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b92147a2ba9baba5afa971142018da07\workspace\transformed\ui-util-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\13cb126a1e405e974164a62f9517d9b6\workspace\transformed\ui-unit-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-text-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\08204ae98a2ac6acbd2e02fae3c31515\workspace\transformed\ui-text-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\24bde325d361d63a760b21e8923605fe\workspace\transformed\ui-graphics-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e7376f48ace4cc7788e8f92989530697\workspace\transformed\ui-tooling-release\AndroidManifest.xml:17:1-28:12
+MERGED from [androidx.compose.material:material-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\a6b5b3d09176b536b16d677181f70625\workspace\transformed\material-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-ripple-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e3975cbe523fa0e1e356d9a3e36f38ad\workspace\transformed\material-ripple-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\37cd42134ddf0c7d4a3de480da5a8b10\workspace\transformed\animation-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b84618af735c20ac57a93e9c95bd02da\workspace\transformed\foundation-layout-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6d0f94841faa779f46f28db5faa0faa8\workspace\transformed\appcompat-resources-1.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2a77c85e4497ff3fd5a67c504a28e21c\workspace\transformed\drawerlayout-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\cf87c3c61412f6e796153a585dd01333\workspace\transformed\viewpager-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7e076490d3bd36236693fb9e69f7a12d\workspace\transformed\loader-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9fc92bd519f5920895a12ab98b8943f0\workspace\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\81a7c64c7f20bff375ff70df9ad28948\workspace\transformed\vectordrawable-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\551427c8caf82aafb392c57734a444fc\workspace\transformed\customview-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.graphics:graphics-path:1.0.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\011d361a52b349ddd3d4a9a1b9be7421\workspace\transformed\graphics-path-1.0.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\310c7237d668e498f484371ee9c2afb5\workspace\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\681fda6e73c4b908f5c6b5a5d1eece15\workspace\transformed\savedstate-1.2.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\abf06657852787a38fc76bcab931c1dc\workspace\transformed\lifecycle-livedata-core-ktx-2.8.7\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\c0c906cc6b6578cf1eae485ef32fa107\workspace\transformed\lifecycle-livedata-2.8.7\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ac79e60e2d3e08200771c03c43d8fdc8\workspace\transformed\lifecycle-viewmodel-2.8.7\AndroidManifest.xml:2:1-5:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\09d42b1ea8d7159763ce34c68be9a622\workspace\transformed\lifecycle-viewmodel-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\bb9ade023e3c05b6923b1ce4ff0a3dc2\workspace\transformed\lifecycle-runtime-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4a0276f08e474c4997392b889a027d26\workspace\transformed\lifecycle-viewmodel-savedstate-2.8.7\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\80ad58751e55c598162ff5542d143ba0\workspace\transformed\lifecycle-viewmodel-ktx-2.8.7\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\505883f806dad961b340749981abbdcb\workspace\transformed\lifecycle-livedata-core-2.8.7\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3c45853f008ccc4f9167f698bd4173b4\workspace\transformed\lifecycle-runtime-ktx-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\63e4a05b1ffead459748d8a79afc3908\workspace\transformed\lifecycle-runtime-compose-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4552a54ac345e1eacf746b1dd386ea79\workspace\transformed\lifecycle-viewmodel-compose-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-icons-extended-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d218701c8086c10361b1b9fb1052e04a\workspace\transformed\material-icons-extended-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9d1978dc356f664dab3fa725e9139289\workspace\transformed\material-icons-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\866396c53015047dbacbf13ec6fda519\workspace\transformed\ui-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\8c507257fb677b8b0de004c1052b9557\workspace\transformed\ui-test-manifest-1.7.2\AndroidManifest.xml:17:1-28:12
+MERGED from [androidx.activity:activity:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9e210a8b1e5d21e2b97fb18bbdedcb1e\workspace\transformed\activity-1.10.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity-ktx:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2bd5f8f74cbc78d84b921728f65bb5b5\workspace\transformed\activity-ktx-1.10.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity-compose:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\50f269e9b52d896fc2b1c671bd2b33e0\workspace\transformed\activity-compose-1.10.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:17:1-31:12
+MERGED from [androidx.room:room-ktx:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3a7f462948dc9ce210193df1b7658a1d\workspace\transformed\room-ktx-2.7.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.datastore:datastore-core-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9d779088f95047377fcce7e5c29838e4\workspace\transformed\datastore-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.datastore:datastore-preferences-core-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6017e700c62f3d3f9450d7220c8ecdf7\workspace\transformed\datastore-preferences-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.datastore:datastore-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9ec5015c9ee06c28379e951b0cd62500\workspace\transformed\datastore-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9ec2e6a6d4400b8d59a2e0126ae32632\workspace\transformed\datastore-preferences-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6e4d9b045194f78cbc9dcb1bde650ba1\workspace\transformed\runtime-saveable-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.runtime:runtime-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0cf34a4cabc38ebcf51fc905fd583d9c\workspace\transformed\runtime-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\1008dd6f91ad3eb4cd8f598a28416e2e\workspace\transformed\annotation-experimental-1.4.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.core:core-viewtree:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dd960fc3b2528b2f5d4c92982c7e5e29\workspace\transformed\core-viewtree-1.0.0\AndroidManifest.xml:2:1-7:12
+MERGED from [net.zetetic:android-database-sqlcipher:4.5.4] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b921f9784663373a349fddd16865b24c\workspace\transformed\android-database-sqlcipher-4.5.4\AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.sqlite:sqlite-framework-android:2.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ffa7aad7cfae26bb7692252dc09a3682\workspace\transformed\sqlite-framework-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.sqlite:sqlite-android:2.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d9dee38e7f5543da5004a8c671f5e5ce\workspace\transformed\sqlite-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0990b9e36fb992bf2cacb09c123edf58\workspace\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\39e56590fbbc1ad32a57065b1eb89812\workspace\transformed\core-runtime-2.2.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\5aa3087eca786ad80c8907f019753444\workspace\transformed\interpolator-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\30836672d0d5a5caac662c4ee4fd5df1\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\28862c2e0ab9db2c77b13fb407bfffd8\workspace\transformed\tracing-1.2.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4fa92d624b3339c071b049dbd9888b59\workspace\transformed\cursoradapter-1.0.0\AndroidManifest.xml:17:1-22:12
+	package
+		INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml
+	android:versionName
+		INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml
+	xmlns:tools
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:3:5-51
+	android:versionCode
+		INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:2:11-69
+uses-permission#android.permission.USE_BIOMETRIC
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:6:5-72
+MERGED from [androidx.biometric:biometric:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9cf728ec08d9bf070e2a5d9b5cad8d8e\workspace\transformed\biometric-1.2.0-alpha05\AndroidManifest.xml:22:5-72
+MERGED from [androidx.biometric:biometric:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9cf728ec08d9bf070e2a5d9b5cad8d8e\workspace\transformed\biometric-1.2.0-alpha05\AndroidManifest.xml:22:5-72
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:6:22-69
+uses-permission#android.permission.USE_FINGERPRINT
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:7:5-101
+MERGED from [androidx.biometric:biometric:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9cf728ec08d9bf070e2a5d9b5cad8d8e\workspace\transformed\biometric-1.2.0-alpha05\AndroidManifest.xml:25:5-74
+MERGED from [androidx.biometric:biometric:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9cf728ec08d9bf070e2a5d9b5cad8d8e\workspace\transformed\biometric-1.2.0-alpha05\AndroidManifest.xml:25:5-74
+	android:maxSdkVersion
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:7:72-98
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:7:22-71
+uses-permission#android.permission.PROVIDE_CREDENTIALS
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:8:5-78
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:8:22-75
+application
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:10:5-51:19
+INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:10:5-51:19
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e7376f48ace4cc7788e8f92989530697\workspace\transformed\ui-tooling-release\AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e7376f48ace4cc7788e8f92989530697\workspace\transformed\ui-tooling-release\AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:28:5-89
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\8c507257fb677b8b0de004c1052b9557\workspace\transformed\ui-test-manifest-1.7.2\AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\8c507257fb677b8b0de004c1052b9557\workspace\transformed\ui-test-manifest-1.7.2\AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:23:5-29:19
+MERGED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:23:5-29:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0990b9e36fb992bf2cacb09c123edf58\workspace\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0990b9e36fb992bf2cacb09c123edf58\workspace\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\30836672d0d5a5caac662c4ee4fd5df1\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\30836672d0d5a5caac662c4ee4fd5df1\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
+	android:extractNativeLibs
+		INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:28:18-86
+	android:supportsRtl
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:18:9-35
+	android:label
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:16:9-38
+	android:fullBackupContent
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:14:9-54
+	android:roundIcon
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:17:9-54
+	android:icon
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:15:9-43
+	android:allowBackup
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:12:9-36
+	android:theme
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:19:9-51
+	android:dataExtractionRules
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:13:9-65
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:11:9-43
+activity#com.obscura.MainActivity
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:20:9-30:20
+	android:label
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:23:13-45
+	android:exported
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:22:13-36
+	android:theme
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:24:13-55
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:21:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:25:13-29:29
+action#android.intent.action.MAIN
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:26:17-69
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:26:25-66
+category#android.intent.category.LAUNCHER
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:28:17-77
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:28:27-74
+activity#com.obscura.autofill.AutofillBiometricAuthActivity
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:33:9-37:58
+	android:windowSoftInputMode
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:37:13-55
+	android:exported
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:35:13-37
+	android:theme
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:36:13-67
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:34:13-67
+service#com.obscura.credentials.ObscuraCredentialProviderService
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:40:9-50:19
+	android:exported
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:43:13-36
+	android:permission
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:42:13-72
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:41:13-73
+intent-filter#action:name:android.service.credentials.CredentialProviderService
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:44:13-46:29
+action#android.service.credentials.CredentialProviderService
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:45:17-96
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:45:25-93
+meta-data#android.service.credentials.metadata
+ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:47:13-49:59
+	android:resource
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:49:17-56
+	android:name
+		ADDED from E:\Obscura Vault\app\src\main\AndroidManifest.xml:48:17-68
+uses-sdk
+INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml
+INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml
+MERGED from [androidx.navigation:navigation-common:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d0f3617c689bf159938b4084f2cb8e4b\workspace\transformed\navigation-common-2.8.9\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-common:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d0f3617c689bf159938b4084f2cb8e4b\workspace\transformed\navigation-common-2.8.9\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-runtime:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\1c03fb7e5be76675ce70f7461a6f7ba6\workspace\transformed\navigation-runtime-2.8.9\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-runtime:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\1c03fb7e5be76675ce70f7461a6f7ba6\workspace\transformed\navigation-runtime-2.8.9\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-common-ktx:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e1fbbeb7a585c92b12be18ea87ecd377\workspace\transformed\navigation-common-ktx-2.8.9\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-common-ktx:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e1fbbeb7a585c92b12be18ea87ecd377\workspace\transformed\navigation-common-ktx-2.8.9\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\476b4ae5f9ef3c5a248aaaa23fb06f6b\workspace\transformed\navigation-runtime-ktx-2.8.9\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\476b4ae5f9ef3c5a248aaaa23fb06f6b\workspace\transformed\navigation-runtime-ktx-2.8.9\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-compose:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e5522b5407b9235c341053b1f895bd6a\workspace\transformed\navigation-compose-2.8.9\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-compose:2.8.9] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e5522b5407b9235c341053b1f895bd6a\workspace\transformed\navigation-compose-2.8.9\AndroidManifest.xml:5:5-44
+MERGED from [androidx.biometric:biometric-ktx:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\c0549c891ab5d653ac8ccfac99f61850\workspace\transformed\biometric-ktx-1.2.0-alpha05\AndroidManifest.xml:5:5-44
+MERGED from [androidx.biometric:biometric-ktx:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\c0549c891ab5d653ac8ccfac99f61850\workspace\transformed\biometric-ktx-1.2.0-alpha05\AndroidManifest.xml:5:5-44
+MERGED from [androidx.credentials:credentials:1.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2a11d08a699b196545ecbc3e891a4e81\workspace\transformed\credentials-1.5.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.credentials:credentials:1.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2a11d08a699b196545ecbc3e891a4e81\workspace\transformed\credentials-1.5.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.biometric:biometric:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9cf728ec08d9bf070e2a5d9b5cad8d8e\workspace\transformed\biometric-1.2.0-alpha05\AndroidManifest.xml:20:5-44
+MERGED from [androidx.biometric:biometric:1.2.0-alpha05] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9cf728ec08d9bf070e2a5d9b5cad8d8e\workspace\transformed\biometric-1.2.0-alpha05\AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\891bc8288282f4ba9539f123983bf8f2\workspace\transformed\appcompat-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\891bc8288282f4ba9539f123983bf8f2\workspace\transformed\appcompat-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.2.5] C:\Users\nikit\.gradle\caches\9.3.1\transforms\472ac06c7e0c70d304ca6f4fbf4a2b0b\workspace\transformed\fragment-1.2.5\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.2.5] C:\Users\nikit\.gradle\caches\9.3.1\transforms\472ac06c7e0c70d304ca6f4fbf4a2b0b\workspace\transformed\fragment-1.2.5\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.compose.material3:material3-android:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\48023b21dce95b98f90021ce4d7837b8\workspace\transformed\material3-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material3:material3-android:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\48023b21dce95b98f90021ce4d7837b8\workspace\transformed\material3-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\872961864c5e5bda7aa27eaebe16d089\workspace\transformed\customview-poolingcontainer-1.0.0\AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\872961864c5e5bda7aa27eaebe16d089\workspace\transformed\customview-poolingcontainer-1.0.0\AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.core:core-ktx:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\08d874a7fd4d2b379508416c6914cb22\workspace\transformed\core-ktx-1.18.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\08d874a7fd4d2b379508416c6914cb22\workspace\transformed\core-ktx-1.18.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.autofill:autofill:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\f41c2df0fb5c48aabaff32b72f116445\workspace\transformed\autofill-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.autofill:autofill:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\f41c2df0fb5c48aabaff32b72f116445\workspace\transformed\autofill-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\baaccaee1a5649c377a7f4596259bfe7\workspace\transformed\ui-tooling-data-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\baaccaee1a5649c377a7f4596259bfe7\workspace\transformed\ui-tooling-data-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2d6f9178519b67ef6ae0d7ce27e0a063\workspace\transformed\ui-geometry-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2d6f9178519b67ef6ae0d7ce27e0a063\workspace\transformed\ui-geometry-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ac12e6be2381715b491ac299d8814889\workspace\transformed\ui-tooling-preview-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ac12e6be2381715b491ac299d8814889\workspace\transformed\ui-tooling-preview-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0b1f4e9a137d393a1d024d8e6b2b5e13\workspace\transformed\foundation-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0b1f4e9a137d393a1d024d8e6b2b5e13\workspace\transformed\foundation-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\49d2cfc43619a18238bfcbbed949aeab\workspace\transformed\animation-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\49d2cfc43619a18238bfcbbed949aeab\workspace\transformed\animation-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b92147a2ba9baba5afa971142018da07\workspace\transformed\ui-util-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b92147a2ba9baba5afa971142018da07\workspace\transformed\ui-util-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\13cb126a1e405e974164a62f9517d9b6\workspace\transformed\ui-unit-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\13cb126a1e405e974164a62f9517d9b6\workspace\transformed\ui-unit-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\08204ae98a2ac6acbd2e02fae3c31515\workspace\transformed\ui-text-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\08204ae98a2ac6acbd2e02fae3c31515\workspace\transformed\ui-text-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\24bde325d361d63a760b21e8923605fe\workspace\transformed\ui-graphics-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\24bde325d361d63a760b21e8923605fe\workspace\transformed\ui-graphics-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e7376f48ace4cc7788e8f92989530697\workspace\transformed\ui-tooling-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e7376f48ace4cc7788e8f92989530697\workspace\transformed\ui-tooling-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material:material-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\a6b5b3d09176b536b16d677181f70625\workspace\transformed\material-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\a6b5b3d09176b536b16d677181f70625\workspace\transformed\material-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e3975cbe523fa0e1e356d9a3e36f38ad\workspace\transformed\material-ripple-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e3975cbe523fa0e1e356d9a3e36f38ad\workspace\transformed\material-ripple-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\37cd42134ddf0c7d4a3de480da5a8b10\workspace\transformed\animation-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\37cd42134ddf0c7d4a3de480da5a8b10\workspace\transformed\animation-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b84618af735c20ac57a93e9c95bd02da\workspace\transformed\foundation-layout-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b84618af735c20ac57a93e9c95bd02da\workspace\transformed\foundation-layout-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6d0f94841faa779f46f28db5faa0faa8\workspace\transformed\appcompat-resources-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6d0f94841faa779f46f28db5faa0faa8\workspace\transformed\appcompat-resources-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2a77c85e4497ff3fd5a67c504a28e21c\workspace\transformed\drawerlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2a77c85e4497ff3fd5a67c504a28e21c\workspace\transformed\drawerlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\cf87c3c61412f6e796153a585dd01333\workspace\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\cf87c3c61412f6e796153a585dd01333\workspace\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7e076490d3bd36236693fb9e69f7a12d\workspace\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7e076490d3bd36236693fb9e69f7a12d\workspace\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9fc92bd519f5920895a12ab98b8943f0\workspace\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9fc92bd519f5920895a12ab98b8943f0\workspace\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\81a7c64c7f20bff375ff70df9ad28948\workspace\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\81a7c64c7f20bff375ff70df9ad28948\workspace\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\551427c8caf82aafb392c57734a444fc\workspace\transformed\customview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\551427c8caf82aafb392c57734a444fc\workspace\transformed\customview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.graphics:graphics-path:1.0.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\011d361a52b349ddd3d4a9a1b9be7421\workspace\transformed\graphics-path-1.0.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.graphics:graphics-path:1.0.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\011d361a52b349ddd3d4a9a1b9be7421\workspace\transformed\graphics-path-1.0.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\310c7237d668e498f484371ee9c2afb5\workspace\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\310c7237d668e498f484371ee9c2afb5\workspace\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\681fda6e73c4b908f5c6b5a5d1eece15\workspace\transformed\savedstate-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\681fda6e73c4b908f5c6b5a5d1eece15\workspace\transformed\savedstate-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\abf06657852787a38fc76bcab931c1dc\workspace\transformed\lifecycle-livedata-core-ktx-2.8.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\abf06657852787a38fc76bcab931c1dc\workspace\transformed\lifecycle-livedata-core-ktx-2.8.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\c0c906cc6b6578cf1eae485ef32fa107\workspace\transformed\lifecycle-livedata-2.8.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\c0c906cc6b6578cf1eae485ef32fa107\workspace\transformed\lifecycle-livedata-2.8.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ac79e60e2d3e08200771c03c43d8fdc8\workspace\transformed\lifecycle-viewmodel-2.8.7\AndroidManifest.xml:4:5-43
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ac79e60e2d3e08200771c03c43d8fdc8\workspace\transformed\lifecycle-viewmodel-2.8.7\AndroidManifest.xml:4:5-43
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\09d42b1ea8d7159763ce34c68be9a622\workspace\transformed\lifecycle-viewmodel-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\09d42b1ea8d7159763ce34c68be9a622\workspace\transformed\lifecycle-viewmodel-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\bb9ade023e3c05b6923b1ce4ff0a3dc2\workspace\transformed\lifecycle-runtime-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\bb9ade023e3c05b6923b1ce4ff0a3dc2\workspace\transformed\lifecycle-runtime-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4a0276f08e474c4997392b889a027d26\workspace\transformed\lifecycle-viewmodel-savedstate-2.8.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4a0276f08e474c4997392b889a027d26\workspace\transformed\lifecycle-viewmodel-savedstate-2.8.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\80ad58751e55c598162ff5542d143ba0\workspace\transformed\lifecycle-viewmodel-ktx-2.8.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\80ad58751e55c598162ff5542d143ba0\workspace\transformed\lifecycle-viewmodel-ktx-2.8.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\505883f806dad961b340749981abbdcb\workspace\transformed\lifecycle-livedata-core-2.8.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\505883f806dad961b340749981abbdcb\workspace\transformed\lifecycle-livedata-core-2.8.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3c45853f008ccc4f9167f698bd4173b4\workspace\transformed\lifecycle-runtime-ktx-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3c45853f008ccc4f9167f698bd4173b4\workspace\transformed\lifecycle-runtime-ktx-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\63e4a05b1ffead459748d8a79afc3908\workspace\transformed\lifecycle-runtime-compose-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\63e4a05b1ffead459748d8a79afc3908\workspace\transformed\lifecycle-runtime-compose-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4552a54ac345e1eacf746b1dd386ea79\workspace\transformed\lifecycle-viewmodel-compose-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4552a54ac345e1eacf746b1dd386ea79\workspace\transformed\lifecycle-viewmodel-compose-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-extended-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d218701c8086c10361b1b9fb1052e04a\workspace\transformed\material-icons-extended-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-extended-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d218701c8086c10361b1b9fb1052e04a\workspace\transformed\material-icons-extended-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9d1978dc356f664dab3fa725e9139289\workspace\transformed\material-icons-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9d1978dc356f664dab3fa725e9139289\workspace\transformed\material-icons-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\866396c53015047dbacbf13ec6fda519\workspace\transformed\ui-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\866396c53015047dbacbf13ec6fda519\workspace\transformed\ui-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\8c507257fb677b8b0de004c1052b9557\workspace\transformed\ui-test-manifest-1.7.2\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\8c507257fb677b8b0de004c1052b9557\workspace\transformed\ui-test-manifest-1.7.2\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9e210a8b1e5d21e2b97fb18bbdedcb1e\workspace\transformed\activity-1.10.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9e210a8b1e5d21e2b97fb18bbdedcb1e\workspace\transformed\activity-1.10.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity-ktx:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2bd5f8f74cbc78d84b921728f65bb5b5\workspace\transformed\activity-ktx-1.10.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\2bd5f8f74cbc78d84b921728f65bb5b5\workspace\transformed\activity-ktx-1.10.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-compose:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\50f269e9b52d896fc2b1c671bd2b33e0\workspace\transformed\activity-compose-1.10.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-compose:1.10.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\50f269e9b52d896fc2b1c671bd2b33e0\workspace\transformed\activity-compose-1.10.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:21:5-44
+MERGED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:21:5-44
+MERGED from [androidx.room:room-ktx:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3a7f462948dc9ce210193df1b7658a1d\workspace\transformed\room-ktx-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.room:room-ktx:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3a7f462948dc9ce210193df1b7658a1d\workspace\transformed\room-ktx-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-core-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9d779088f95047377fcce7e5c29838e4\workspace\transformed\datastore-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-core-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9d779088f95047377fcce7e5c29838e4\workspace\transformed\datastore-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-preferences-core-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6017e700c62f3d3f9450d7220c8ecdf7\workspace\transformed\datastore-preferences-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-preferences-core-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6017e700c62f3d3f9450d7220c8ecdf7\workspace\transformed\datastore-preferences-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9ec5015c9ee06c28379e951b0cd62500\workspace\transformed\datastore-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9ec5015c9ee06c28379e951b0cd62500\workspace\transformed\datastore-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9ec2e6a6d4400b8d59a2e0126ae32632\workspace\transformed\datastore-preferences-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\9ec2e6a6d4400b8d59a2e0126ae32632\workspace\transformed\datastore-preferences-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6e4d9b045194f78cbc9dcb1bde650ba1\workspace\transformed\runtime-saveable-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\6e4d9b045194f78cbc9dcb1bde650ba1\workspace\transformed\runtime-saveable-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0cf34a4cabc38ebcf51fc905fd583d9c\workspace\transformed\runtime-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0cf34a4cabc38ebcf51fc905fd583d9c\workspace\transformed\runtime-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\1008dd6f91ad3eb4cd8f598a28416e2e\workspace\transformed\annotation-experimental-1.4.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\1008dd6f91ad3eb4cd8f598a28416e2e\workspace\transformed\annotation-experimental-1.4.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-viewtree:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dd960fc3b2528b2f5d4c92982c7e5e29\workspace\transformed\core-viewtree-1.0.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-viewtree:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dd960fc3b2528b2f5d4c92982c7e5e29\workspace\transformed\core-viewtree-1.0.0\AndroidManifest.xml:5:5-44
+MERGED from [net.zetetic:android-database-sqlcipher:4.5.4] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b921f9784663373a349fddd16865b24c\workspace\transformed\android-database-sqlcipher-4.5.4\AndroidManifest.xml:5:5-7:41
+MERGED from [net.zetetic:android-database-sqlcipher:4.5.4] C:\Users\nikit\.gradle\caches\9.3.1\transforms\b921f9784663373a349fddd16865b24c\workspace\transformed\android-database-sqlcipher-4.5.4\AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.sqlite:sqlite-framework-android:2.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ffa7aad7cfae26bb7692252dc09a3682\workspace\transformed\sqlite-framework-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.sqlite:sqlite-framework-android:2.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\ffa7aad7cfae26bb7692252dc09a3682\workspace\transformed\sqlite-framework-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.sqlite:sqlite-android:2.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d9dee38e7f5543da5004a8c671f5e5ce\workspace\transformed\sqlite-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.sqlite:sqlite-android:2.5.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\d9dee38e7f5543da5004a8c671f5e5ce\workspace\transformed\sqlite-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0990b9e36fb992bf2cacb09c123edf58\workspace\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\0990b9e36fb992bf2cacb09c123edf58\workspace\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\39e56590fbbc1ad32a57065b1eb89812\workspace\transformed\core-runtime-2.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\39e56590fbbc1ad32a57065b1eb89812\workspace\transformed\core-runtime-2.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\5aa3087eca786ad80c8907f019753444\workspace\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\5aa3087eca786ad80c8907f019753444\workspace\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\30836672d0d5a5caac662c4ee4fd5df1\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\30836672d0d5a5caac662c4ee4fd5df1\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\28862c2e0ab9db2c77b13fb407bfffd8\workspace\transformed\tracing-1.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.tracing:tracing:1.2.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\28862c2e0ab9db2c77b13fb407bfffd8\workspace\transformed\tracing-1.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4fa92d624b3339c071b049dbd9888b59\workspace\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\4fa92d624b3339c071b049dbd9888b59\workspace\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+	android:targetSdkVersion
+		INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from E:\Obscura Vault\app\src\main\AndroidManifest.xml
+activity#androidx.compose.ui.tooling.PreviewActivity
+ADDED from [androidx.compose.ui:ui-tooling-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e7376f48ace4cc7788e8f92989530697\workspace\transformed\ui-tooling-release\AndroidManifest.xml:23:9-25:39
+	android:exported
+		ADDED from [androidx.compose.ui:ui-tooling-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e7376f48ace4cc7788e8f92989530697\workspace\transformed\ui-tooling-release\AndroidManifest.xml:25:13-36
+	android:name
+		ADDED from [androidx.compose.ui:ui-tooling-android:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\e7376f48ace4cc7788e8f92989530697\workspace\transformed\ui-tooling-release\AndroidManifest.xml:24:13-71
+provider#androidx.startup.InitializationProvider
+ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\30836672d0d5a5caac662c4ee4fd5df1\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\nikit\.gradle\caches\9.3.1\transforms\30836672d0d5a5caac662c4ee4fd5df1\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:26:9-30:34
+	tools:node
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:28:13-31
+	android:authorities
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:26:13-68
+	android:exported
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:25:13-67
+meta-data#androidx.emoji2.text.EmojiCompatInitializer
+ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\dcb9eca6640f5aa5f43e51d0ffda7d2f\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:23:9-81
+permission#com.obscura.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:26:22-94
+uses-permission#com.obscura.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.18.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\fe0764e44753f9817c7971aed93b616f\workspace\transformed\core-1.18.0\AndroidManifest.xml:26:22-94
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\nikit\.gradle\caches\9.3.1\transforms\7580f3484398ad676af1c0a89a5f81b4\workspace\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:30:17-78
+activity#androidx.activity.ComponentActivity
+ADDED from [androidx.compose.ui:ui-test-manifest:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\8c507257fb677b8b0de004c1052b9557\workspace\transformed\ui-test-manifest-1.7.2\AndroidManifest.xml:23:9-25:39
+	android:exported
+		ADDED from [androidx.compose.ui:ui-test-manifest:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\8c507257fb677b8b0de004c1052b9557\workspace\transformed\ui-test-manifest-1.7.2\AndroidManifest.xml:25:13-36
+	android:name
+		ADDED from [androidx.compose.ui:ui-test-manifest:1.7.2] C:\Users\nikit\.gradle\caches\9.3.1\transforms\8c507257fb677b8b0de004c1052b9557\workspace\transformed\ui-test-manifest-1.7.2\AndroidManifest.xml:24:13-63
+service#androidx.room.MultiInstanceInvalidationService
+ADDED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:24:9-28:63
+	android:exported
+		ADDED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:27:13-37
+	tools:ignore
+		ADDED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:28:13-60
+	android:directBootAware
+		ADDED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:26:13-43
+	android:name
+		ADDED from [androidx.room:room-runtime-android:2.7.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\84473e27238803cdb98f9c2cf0faf6e9\workspace\transformed\room-runtime-release\AndroidManifest.xml:25:13-74
+meta-data#androidx.profileinstaller.ProfileInstallerInitializer
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:30:17-85
+receiver#androidx.profileinstaller.ProfileInstallReceiver
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:34:9-52:20
+	android:enabled
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:37:13-35
+	android:exported
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:38:13-36
+	android:permission
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:39:13-57
+	android:directBootAware
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:36:13-44
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:35:13-76
+intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:40:13-42:29
+action#androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:41:17-91
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:41:25-88
+intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:43:13-45:29
+action#androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:44:17-85
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:44:25-82
+intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:46:13-48:29
+action#androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:47:17-88
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:47:25-85
+intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:49:13-51:29
+action#androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:50:17-95
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\nikit\.gradle\caches\9.3.1\transforms\3864ba1c74efd0af4164bc0483553c11\workspace\transformed\profileinstaller-1.4.0\AndroidManifest.xml:50:25-92
