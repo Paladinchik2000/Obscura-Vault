@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- STRICT OFFLINE REQUIREMENT: NO INTERNET PERMISSION DECLARED -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.PROVIDE_CREDENTIALS" />
+
+    <application
+        android:name=".ObscuraApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Obscura Vault"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MyApplication">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="Obscura Fortress"
+            android:theme="@style/Theme.MyApplication">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Transparent Jetpack Compose Activity for Autofill Biometric Authentication -->
+        <activity
+            android:name=".autofill.AutofillBiometricAuthActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Obscura.TransparentDialog"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Credential Manager Provider Service for Passkeys (FIDO2/WebAuthn) and Passwords -->
+        <service
+            android:name=".credentials.ObscuraCredentialProviderService"
+            android:permission="android.permission.PROVIDE_CREDENTIALS"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.credentials.CredentialProviderService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.credentials.metadata"
+                android:resource="@xml/provider_config" />
+        </service>
+    </application>
+
+</manifest>
