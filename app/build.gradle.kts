@@ -78,7 +78,6 @@ dependencies {
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
   implementation("androidx.autofill:autofill:1.1.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
   implementation("androidx.fragment:fragment-ktx:1.8.5")
   implementation("androidx.biometric:biometric-ktx:1.2.0-alpha05")
   implementation("androidx.navigation:navigation-compose:2.8.5")
