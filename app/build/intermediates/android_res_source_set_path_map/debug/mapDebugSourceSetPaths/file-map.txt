@@ -1,7 +1,0 @@
-com.obscura.app-pngs-0 D:\IT_AI_PROJECTS\projects\Obscura Vault\app\build\generated\res\pngs\debug
-com.obscura.app-updated_navigation_xml-1 D:\IT_AI_PROJECTS\projects\Obscura Vault\app\build\generated\updated_navigation_xml\debug
-com.obscura.app-packageDebugResources-2 D:\IT_AI_PROJECTS\projects\Obscura Vault\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
-com.obscura.app-packageDebugResources-3 D:\IT_AI_PROJECTS\projects\Obscura Vault\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
-com.obscura.app-debug-4 D:\IT_AI_PROJECTS\projects\Obscura Vault\app\build\intermediates\merged_res\debug\mergeDebugResources
-com.obscura.app-debug-5 D:\IT_AI_PROJECTS\projects\Obscura Vault\app\src\debug\res
-com.obscura.app-main-6 D:\IT_AI_PROJECTS\projects\Obscura Vault\app\src\main\res

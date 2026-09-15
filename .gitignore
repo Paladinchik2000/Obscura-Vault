@@ -24,3 +24,9 @@ vite.config.ts
 tailwind.config.js
 postcss.config.js
 .env.obscura
+app/build/
+build/
+.gradle/
+*.keystore
+*.jks
+.emulator-data/

@@ -1,3 +1,0 @@
-09-15 16:29:06.985  5842  6102 I TestRunner: started: nativeLibraryLoads(com.obscura.data.local.VaultDatabaseEncryptionTest)
-09-15 16:29:06.990  5935  6103 D SlicesIndexer: Slices already indexed - returning.
-09-15 16:29:06.990  5842  6102 I TestRunner: finished: nativeLibraryLoads(com.obscura.data.local.VaultDatabaseEncryptionTest)
