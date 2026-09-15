@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.obscura.app-mergeDebugResources-70:/values-fr-rCA/values-fr-rCA.xml",
+            "outputFile": "com.obscura.app-mergeDebugResources-69:/values-fr-rCA/values-fr-rCA.xml",
             "map": [
                 {
                     "source": "C:\\Users\\nikit\\.gradle\\caches\\9.3.1\\transforms\\866396c53015047dbacbf13ec6fda519\\workspace\\transformed\\ui-release\\res\\values-fr-rCA\\values-fr-rCA.xml",

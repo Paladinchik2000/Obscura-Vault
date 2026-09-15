@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.obscura.security.HkdfTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-15T13:18:28.422Z" hostname="PALADINCHIK" time="0.002">
+  <properties/>
+  <testcase name="rfc5869Case1_basic" classname="com.obscura.security.HkdfTest" time="0.001"/>
+  <testcase name="rfc5869Case2_longInputsSpanningThreeBlocks" classname="com.obscura.security.HkdfTest" time="0.0"/>
+  <testcase name="differentInfoLabelsGiveIndependentKeys" classname="com.obscura.security.HkdfTest" time="0.0"/>
+  <testcase name="rfc5869Case3_emptySaltAndInfo" classname="com.obscura.security.HkdfTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

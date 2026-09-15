@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.obscura.data.backup.BackupManagerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-15T13:18:28.030Z" hostname="PALADINCHIK" time="0.106">
+  <properties/>
+  <testcase name="exportIsRefusedWhileVaultIsLocked" classname="com.obscura.data.backup.BackupManagerTest" time="0.053"/>
+  <testcase name="exportLockedMidwayWritesNothing" classname="com.obscura.data.backup.BackupManagerTest" time="0.049"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="8" failures="0" errors="0" skipped="0" time="18.062" timestamp="2026-09-15T13:29:10" hostname="localhost">
+  <testsuite name="com.obscura.data.backup.BackupFormatTest" tests="2" failures="0" errors="0" skipped="0" time="15.307" timestamp="2026-09-15T13:29:10" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_10_Pro(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="importRejectsUnknownPayloadVersionWithClearError" classname="com.obscura.data.backup.BackupFormatTest" time="4.16" />
+    <testcase name="exportWritesVersionedFileThatImportsIntoEmptyVault" classname="com.obscura.data.backup.BackupFormatTest" time="11.147" />
+  </testsuite>
+  <testsuite name="com.obscura.data.local.VaultDatabaseEncryptionTest" tests="6" failures="0" errors="0" skipped="0" time="0.93" timestamp="2026-09-15T13:29:10" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_10_Pro(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="walAndShmContainNoPlaintextOfWrittenRecord" classname="com.obscura.data.local.VaultDatabaseEncryptionTest" time="0.205" />
+    <testcase name="nativeLibraryLoads" classname="com.obscura.data.local.VaultDatabaseEncryptionTest" time="0.001" />
+    <testcase name="differentDekFailsAndLeavesExistingFileUntouched" classname="com.obscura.data.local.VaultDatabaseEncryptionTest" time="0.231" />
+    <testcase name="recordSurvivesCloseAndReopenWithSameDek" classname="com.obscura.data.local.VaultDatabaseEncryptionTest" time="0.207" />
+    <testcase name="keyArrayIsZeroedAfterClose" classname="com.obscura.data.local.VaultDatabaseEncryptionTest" time="0.104" />
+    <testcase name="databaseFileDoesNotStartWithPlainSqliteHeader" classname="com.obscura.data.local.VaultDatabaseEncryptionTest" time="0.182" />
+  </testsuite>
+</testsuites>

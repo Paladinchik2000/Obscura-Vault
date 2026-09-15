@@ -294,6 +294,7 @@
     <item name="progress_circular" type="id"/>
     <item name="progress_horizontal" type="id"/>
     <item name="report_drawn" type="id"/>
+    <item name="special_effects_controller_view_tag" type="id"/>
     <item name="split_action_bar" type="id"/>
     <item name="tag_accessibility_actions" type="id"/>
     <item name="tag_accessibility_clickable_spans" type="id"/>
@@ -391,15 +392,6 @@
     <string name="generic_error_user_canceled">Authentication canceled by user.</string>
     <string name="in_progress">In progress</string>
     <string name="indeterminate">Partially checked</string>
-    <string name="library_android_database_sqlcipher_author">Zetetic, LLC</string>
-    <string name="library_android_database_sqlcipher_authorWebsite">https://www.zetetic.net/sqlcipher/</string>
-    <string name="library_android_database_sqlcipher_isOpenSource">true</string>
-    <string name="library_android_database_sqlcipher_libraryDescription">Android SQLite API based on SQLCipher</string>
-    <string name="library_android_database_sqlcipher_libraryName">SQLCipher for Android</string>
-    <string name="library_android_database_sqlcipher_libraryVersion">${clientVersionNumber}</string>
-    <string name="library_android_database_sqlcipher_libraryWebsite">https://www.zetetic.net/sqlcipher/</string>
-    <string name="library_android_database_sqlcipher_licenseLink">https://www.zetetic.net/sqlcipher/license/</string>
-    <string name="library_android_database_sqlcipher_repositoryLink">https://github.com/sqlcipher/android-database-sqlcipher</string>
     <string name="m3c_bottom_sheet_collapse_description">Collapse bottom sheet</string>
     <string name="m3c_bottom_sheet_dismiss_description">Dismiss bottom sheet</string>
     <string name="m3c_bottom_sheet_drag_handle_description">Drag handle</string>

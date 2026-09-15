@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.obscura.app-mergeDebugResources-70:/values-ca/values-ca.xml",
+            "outputFile": "com.obscura.app-mergeDebugResources-69:/values-ca/values-ca.xml",
             "map": [
                 {
                     "source": "C:\\Users\\nikit\\.gradle\\caches\\9.3.1\\transforms\\48023b21dce95b98f90021ce4d7837b8\\workspace\\transformed\\material3-release\\res\\values-ca\\values-ca.xml",

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.obscura.app-mergeDebugResources-70:/values-kk/values-kk.xml",
+            "outputFile": "com.obscura.app-mergeDebugResources-69:/values-kk/values-kk.xml",
             "map": [
                 {
                     "source": "C:\\Users\\nikit\\.gradle\\caches\\9.3.1\\transforms\\9cf728ec08d9bf070e2a5d9b5cad8d8e\\workspace\\transformed\\biometric-1.2.0-alpha05\\res\\values-kk\\values-kk.xml",

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.obscura.app-mergeDebugResources-70:/values-zh-rTW/values-zh-rTW.xml",
+            "outputFile": "com.obscura.app-mergeDebugResources-69:/values-zh-rTW/values-zh-rTW.xml",
             "map": [
                 {
                     "source": "C:\\Users\\nikit\\.gradle\\caches\\9.3.1\\transforms\\fe0764e44753f9817c7971aed93b616f\\workspace\\transformed\\core-1.18.0\\res\\values-zh-rTW\\values-zh-rTW.xml",

@@ -4,10 +4,8 @@ import androidx.annotation.Keep
 import com.obscura.data.local.VaultDao
 import com.obscura.data.local.VaultEntity
 import com.obscura.data.model.VaultCategory
-import kotlinx.coroutines.Dispatchers
+import com.obscura.security.VaultSession
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import java.util.UUID
 
 /**
@@ -26,53 +24,50 @@ interface VaultRepository {
 }
 
 /**
- * Concrete implementation executing all Room operations safely on Dispatchers.IO.
+ * Every DAO call runs inside the VaultSession scope, so locking the vault waits for
+ * in-flight queries before the database is closed. Suspend calls fail with
+ * VaultLockedException while locked; flows complete when the vault locks.
+ *
+ * Each write below is a single statement (and Room already wraps it in a transaction).
+ * Any write that needs more than one statement must go through VaultSession.runInTransaction,
+ * so a lock between steps rolls it back as a whole.
  */
 @Keep
-class VaultRepositoryImpl(private val vaultDao: VaultDao) : VaultRepository {
+class VaultRepositoryImpl : VaultRepository {
 
-    override fun getAllEntries(): Flow<List<VaultEntity>> {
-        return vaultDao.getAllEntries().flowOn(Dispatchers.IO)
-    }
+    override fun getAllEntries(): Flow<List<VaultEntity>> =
+        VaultSession.observe { dao().getAllEntries() }
 
-    override fun getEntriesByCategory(category: VaultCategory): Flow<List<VaultEntity>> {
-        return vaultDao.getEntriesByCategory(category.id).flowOn(Dispatchers.IO)
-    }
+    override fun getEntriesByCategory(category: VaultCategory): Flow<List<VaultEntity>> =
+        VaultSession.observe { dao().getEntriesByCategory(category.id) }
 
-    override fun searchEntries(query: String): Flow<List<VaultEntity>> {
-        return vaultDao.searchEntries(query).flowOn(Dispatchers.IO)
-    }
+    override fun searchEntries(query: String): Flow<List<VaultEntity>> =
+        VaultSession.observe { dao().searchEntries(query) }
 
-    override suspend fun getEntryById(id: String): VaultEntity? {
-        return withContext(Dispatchers.IO) {
-            vaultDao.getEntryById(id)
-        }
-    }
+    override suspend fun getEntryById(id: String): VaultEntity? =
+        VaultSession.runInSession { dao().getEntryById(id) }
 
     override suspend fun saveEntry(entry: VaultEntity) {
-        withContext(Dispatchers.IO) {
+        VaultSession.runInSession {
             val entryToSave = if (entry.id.isBlank()) {
                 entry.copy(id = UUID.randomUUID().toString(), createdAt = System.currentTimeMillis())
             } else {
                 entry.copy(updatedAt = System.currentTimeMillis())
             }
-            vaultDao.insertEntry(entryToSave)
+            dao().insertEntry(entryToSave)
         }
     }
 
     override suspend fun deleteEntry(id: String) {
-        withContext(Dispatchers.IO) {
-            vaultDao.deleteEntryById(id)
-        }
+        VaultSession.runInSession { dao().deleteEntryById(id) }
     }
 
     override suspend fun toggleFavorite(id: String, currentStatus: Boolean) {
-        withContext(Dispatchers.IO) {
-            vaultDao.updateFavoriteStatus(id, !currentStatus)
-        }
+        VaultSession.runInSession { dao().updateFavoriteStatus(id, !currentStatus) }
     }
 
-    override fun getEntriesCount(): Flow<Int> {
-        return vaultDao.getEntriesCount().flowOn(Dispatchers.IO)
-    }
+    override fun getEntriesCount(): Flow<Int> =
+        VaultSession.observe { dao().getEntriesCount() }
+
+    private suspend fun dao(): VaultDao = VaultSession.requireDatabase().vaultDao()
 }

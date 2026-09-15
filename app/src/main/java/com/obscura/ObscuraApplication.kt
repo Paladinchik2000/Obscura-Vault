@@ -2,7 +2,6 @@ package com.obscura
 
 import android.app.Application
 import androidx.annotation.Keep
-import net.sqlcipher.database.SQLiteDatabase
 
 /**
  * ObscuraApplication
@@ -14,7 +13,7 @@ class ObscuraApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Initialize SQLCipher native libraries
-        SQLiteDatabase.loadLibs(this)
+        // sqlcipher-android does not load its native library itself: load it before any database opens.
+        System.loadLibrary("sqlcipher")
     }
 }

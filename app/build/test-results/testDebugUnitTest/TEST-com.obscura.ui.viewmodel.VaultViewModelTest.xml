@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.obscura.ui.viewmodel.VaultViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-15T13:18:28.774Z" hostname="PALADINCHIK" time="0.038">
+  <properties/>
+  <testcase name="entriesEmittedAfterLockNeverReachViewModel" classname="com.obscura.ui.viewmodel.VaultViewModelTest" time="0.028"/>
+  <testcase name="lockWipesRecordDataWhileViewModelStaysAlive" classname="com.obscura.ui.viewmodel.VaultViewModelTest" time="0.005"/>
+  <testcase name="nextUnlockResumesObservation" classname="com.obscura.ui.viewmodel.VaultViewModelTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,95 @@
+09-15 16:29:06.997  5842  6102 I TestRunner: started: differentDekFailsAndLeavesExistingFileUntouched(com.obscura.data.local.VaultDatabaseEncryptionTest)
+09-15 16:29:07.001  5842  6290 I SQLiteConnection: Database keying operation returned:0
+09-15 16:29:07.002  5935  6104 D SlicesIndexer: Slices already indexed - returning.
+09-15 16:29:07.002  5935  6104 D VolumeSliceHelper: Registering uri for broadcast relay: content://com.android.settings.slices/action/alarm_volume
+09-15 16:29:07.009  5935  6104 D SettingsSliceProvider: Built slice (content://com.android.settings.slices/action/alarm_volume) in: 8
+09-15 16:29:07.010  5935  6103 D SettingsSliceProvider: Built slice (content://com.android.settings.slices/action/notification_volume) in: 21
+09-15 16:29:07.024  5935  6105 D SlicesIndexer: Slices already indexed - returning.
+09-15 16:29:07.024  5935  6105 W SliceData: Highlight menu key res is empty: com.android.settings.deviceinfo.hardwareinfo.DeviceModelPreferenceController
+09-15 16:29:07.027  5935  6105 D SettingsSliceProvider: Built slice (content://com.android.settings.slices/action/hardware_info_device_model) in: 3
+09-15 16:29:07.032  5257  5749 I Finsky:background: [83] DSC::L: Update all listeners for download <2:RUNNING:100%[100%]> in group com.android.vending:KlAQGEfJTYeDhvAknubFKg
+09-15 16:29:07.032  5257  5749 I Finsky:background: [83] DSC::L: Updating listener sul@4126430 for download <2:RUNNING:100%[100%]>
+09-15 16:29:07.033  5257  5749 I Finsky:background: [83] DSC::L: Updating listener DownloadServiceManagerListener::ajgi@4bbb506 for download <2:RUNNING:100%[100%]>
+09-15 16:29:07.033  5257  5749 I Finsky:background: [83] DS: Received onProgress request_id=2
+09-15 16:29:07.033  5257  5749 I Finsky:background: [83] RM: receive resource status onProgress download_request_id=2, group_id=config.en reason: su_auto_update isid: KlAQGEfJTYeDhvAknubFKg, status_code=RESOURCE_STATUS_IN_PROGRESS, legacy_status_code=192, size: 586137/586137
+09-15 16:29:07.033  5257  5749 I Finsky:background: [83] DSC::L: Updating listener DownloadServiceManagerListener::rhm@85875e2 for download <2:RUNNING:100%[100%]>
+09-15 16:29:07.033  5257  5749 I Finsky:background: [83] DS::IDC: updateWith: <2:RUNNING:100%[100%]>
+09-15 16:29:07.037  5935  6100 D SlicesIndexer: Slices already indexed - returning.
+09-15 16:29:07.040  5257  5424 I Finsky:background: [54] DSC: getDownload(2)
+09-15 16:29:07.044  5935  6100 D SettingsSliceProvider: Built slice (content://com.android.settings.slices/action/auto_rotate) in: 7
+09-15 16:29:07.046  5257  5424 I Finsky:background: [54] DS: getDownload(request_id=2)
+09-15 16:29:07.049  5257  5749 I Finsky:background: [83] DS: onGetDownload(request_id=2, files_to_download=[config.en(size:586137)], context[group_id=com.android.vending:KlAQGEfJTYeDhvAknubFKg], display_data[invisible=true, title=Google Play Store], network_restrictions=ANY_NETWORK status=succeeded, bytes_downloaded=586137, total_bytes=586137, retry[count=0, next_retry=n/a])
+09-15 16:29:07.056  5257  5257 I Finsky:background: [2] RF: onProgress request_id=2 isid=KlAQGEfJTYeDhvAknubFKg
+09-15 16:29:07.062  5257  5257 I Finsky:background: [2] RF: resourceStatus for request_id=2 group=com.android.vending artifact=config.en collectedBytes= 586137 / 586137
+09-15 16:29:07.062  5257  5257 I Finsky:background: [2] RF: Group=com.android.vending totalBytesDownloaded= 728559 / 33527337 for 8 artifacts
+09-15 16:29:07.067  5257  5257 I Finsky:background: [2] RF: Preventing total bytes update to listeners
+09-15 16:29:07.070  5257  5749 I Finsky:background: [83] DS: Decremented runningDownloadsCount to: 3
+09-15 16:29:07.072  5257  5749 I Finsky:background: [83] DS: Current runningDownloadsCount: 3, maxSimultaneousDownloads: 4
+09-15 16:29:07.078  5257  5749 I Finsky:background: [83] DSC::L: Update all listeners for download <2:SUCCEEDED> in group com.android.vending:KlAQGEfJTYeDhvAknubFKg
+09-15 16:29:07.078  5257  5749 I Finsky:background: [83] DSC::L: Updating listener sul@4126430 for download <2:SUCCEEDED>
+09-15 16:29:07.078  5257  5749 I Finsky:background: [83] DSC::L: Updating listener DownloadServiceManagerListener::ajgi@4bbb506 for download <2:SUCCEEDED>
+09-15 16:29:07.089  5257  5749 I Finsky:background: [83] RM: receive resource status onSuccess config.en reason: su_auto_update isid: KlAQGEfJTYeDhvAknubFKg, 3, 200, size: 586137/586137
+09-15 16:29:07.089  5257  5749 I Finsky:background: [83] DSC::L: Updating listener DownloadServiceManagerListener::rhm@85875e2 for download <2:SUCCEEDED>
+09-15 16:29:07.090  6256  6425 W JobInfo : Requested important-while-foreground flag for job1010 is ignored and takes no effect
+09-15 16:29:07.090  6256  6425 D WM-SystemJobScheduler: Scheduling work ID 63e2b4d2-5c71-4fdb-8570-122730f44c18Job ID 1010
+09-15 16:29:07.092  6256  6420 I Bugle   : MergingForwardSyncWorkOrganizer: Sync complete with status [SUCCESS], syncId: f746ceae-1342-4508-876b-fda801e7ebab
+09-15 16:29:07.093  6256  6420 I BugleClearcutLogger: qosTierResolver for LOG_SPEC_LEGACY_LOGGING is null. Using DEFAULT QoS tier as there's no specific QoS configuration for this log spec.
+09-15 16:29:07.096  6256  6425 D WM-GreedyScheduler: Ignoring {WorkSpec: 63e2b4d2-5c71-4fdb-8570-122730f44c18}. Requires device idle.
+09-15 16:29:07.097  5257  5749 I Finsky:background: [83] DS::IDC: updateWith: <2:SUCCEEDED>
+09-15 16:29:07.099  6256  6421 I BugleSearch: Queues icing index rebuild work item. [CONTEXT class_name="IcingSyncManagerListener" ]
+09-15 16:29:07.103  5257  5436 I Finsky:background: [60] DSC: getDownload(2)
+09-15 16:29:07.106  5257  5436 I Finsky:background: [60] DS: getDownload(request_id=2)
+09-15 16:29:07.108  5257  5749 I Finsky:background: [83] DS: onGetDownload(request_id=2, files_to_download=[config.en(size:586137)], context[group_id=com.android.vending:KlAQGEfJTYeDhvAknubFKg], display_data[invisible=true, title=Google Play Store], network_restrictions=ANY_NETWORK status=succeeded, bytes_downloaded=586137, total_bytes=586137, retry[count=0, next_retry=n/a])
+09-15 16:29:07.114  5257  5257 I Finsky:background: [2] RF: onResourceSuccess request_id=2 isid=KlAQGEfJTYeDhvAknubFKg
+09-15 16:29:07.114  5257  5257 I Finsky:background: [2] RF: resourceStatus for request_id=2 group=com.android.vending artifact=config.en collectedBytes= 586137 / 586137
+09-15 16:29:07.114  5257  5257 I Finsky:background: [2] RF: Group=com.android.vending totalBytesDownloaded= 728559 / 33527337 for 8 artifacts
+09-15 16:29:07.116  5257  5257 I Finsky:background: [2] bytesCompleted/bytesTotal/ratio = 728559 / 33527337 / 0.021730
+09-15 16:29:07.117  5257  5257 I Finsky:background: [2] RF: onSuccess request_id=2 isid=KlAQGEfJTYeDhvAknubFKg
+09-15 16:29:07.117  5257  5257 I Finsky:background: [2] RF: resourceStatus for request_id=2 group=com.android.vending artifact=config.en collectedBytes= 586137 / 586137
+09-15 16:29:07.118  5257  5257 I Finsky:background: [2] RF: Group=com.android.vending totalBytesDownloaded= 728559 / 33527337 for 8 artifacts
+09-15 16:29:07.123  5257  5413 I Finsky:background: [53] IV2: onTaskProgress com.android.vending[iid:0] [isid:KlAQGEfJTYeDhvAknubFKg] status:RESOURCE_FETCH_PROGRESS, size: 728559/33527337
+09-15 16:29:07.136  5257  5431 I Finsky:background: [56] RF: starting postprocessing for config.en
+09-15 16:29:07.137  5842  6354 I SQLiteConnection: Database keying operation returned:0
+09-15 16:29:07.138  5842  6354 D sqlcipher: ERROR CORE sqlcipher_page_cipher: hmac check failed for pgno=1
+09-15 16:29:07.138  5842  6354 D sqlcipher: ERROR CORE sqlite3Codec: error decrypting page 1 data: 1
+09-15 16:29:07.138  5842  6354 D sqlcipher: ERROR CORE sqlcipher_codec_ctx_set_error: 1 lock=0
+09-15 16:29:07.138  5842  6354 E SQLiteLog: (26) file is not a database in "SELECT COUNT(*) FROM sqlite_schema;"
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: Failed to open database '/data/user/0/com.obscura/databases/obscura_encrypted_vault.db'.
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: net.zetetic.database.sqlcipher.SQLiteNotADatabaseException: file is not a database (code 26): , while compiling: SELECT COUNT(*) FROM sqlite_schema;
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteConnection.nativePrepareStatement(Native Method)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteConnection.acquirePreparedStatement(SQLiteConnection.java:973)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteConnection.executeForLong(SQLiteConnection.java:628)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteConnection.open(SQLiteConnection.java:240)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteConnection.open(SQLiteConnection.java:202)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteConnectionPool.openConnectionLocked(SQLiteConnectionPool.java:474)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteConnectionPool.open(SQLiteConnectionPool.java:188)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteConnectionPool.open(SQLiteConnectionPool.java:180)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteDatabase.openInner(SQLiteDatabase.java:1037)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteDatabase.open(SQLiteDatabase.java:1022)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteDatabase.openDatabase(SQLiteDatabase.java:849)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteOpenHelper.getDatabaseLocked(SQLiteOpenHelper.java:359)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SQLiteOpenHelper.getWritableDatabase(SQLiteOpenHelper.java:278)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at net.zetetic.database.sqlcipher.SupportHelper.getWritableDatabase(SupportHelper.java:60)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at androidx.room.driver.SupportSQLiteDriver.open(SupportSQLiteDriver.android.kt:26)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at androidx.room.driver.SupportSQLiteConnectionPool.getSupportConnection(SupportSQLiteConnectionPool.android.kt:35)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:588)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:109)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+09-15 16:29:07.139  5842  6354 E SQLiteDatabase: 	at java.lang.Thread.run(Thread.java:1563)
+09-15 16:29:07.137  5257  6718 I Finsky:background: [111] DU: Stored data usage stats for package com.android.vending; completed bytes: 586137.
+09-15 16:29:07.145  5257  5434 I Finsky:background: [58] IQ: Notifying installation update. [Package:com.android.vending, isid:KlAQGEfJTYeDhvAknubFKg], status=DOWNLOADING, status_code=0, reason=su_auto_update, tsc=PT9.356S, attempt=0
+09-15 16:29:07.145  5842  6102 I VaultDbEncryptionTest: open with different DEK failed with: net.zetetic.database.sqlcipher.SQLiteNotADatabaseException: file is not a database (code 26): , while compiling: SELECT COUNT(*) FROM sqlite_schema;
+09-15 16:29:07.145  5257  5392 I Finsky:background: [48] RF::PP-Copy: starting to copy for com.android.vending[iid:0] [isid:KlAQGEfJTYeDhvAknubFKg] [tid: 1000000000]
+09-15 16:29:07.152  5257  5413 I Finsky:background: [53] IV2: onTaskProgress com.android.vending[iid:0] [isid:KlAQGEfJTYeDhvAknubFKg] status:RESOURCE_FETCH_PROGRESS, size: 728559/33527337
+09-15 16:29:07.156  5842  6743 I SQLiteConnection: Database keying operation returned:0
+09-15 16:29:07.162  5257  6589 I Finsky:background: [93] RF::PP-Copy: Starting copy of config.en
+09-15 16:29:07.162  5257  6589 I Finsky:background: [93] RF::PP-Copy: OutputStream opened for config.en
+09-15 16:29:07.163  5257  6589 I Finsky:background: [93] RF::PP-Copy: Start copying from input stream for config.en
+09-15 16:29:07.182  5257  6589 I Finsky:background: [93] RF::PP-Copy: Finished copying from input stream for config.en
+09-15 16:29:07.183  1692  2038 V MmsProvider: inside checkSelection checking sel: ((type IN (1, 4, 6, 5, 2)) AND (thread_id>=0)) AND date<1789478946000
+09-15 16:29:07.202  5842  6102 I TestRunner: finished: differentDekFailsAndLeavesExistingFileUntouched(com.obscura.data.local.VaultDatabaseEncryptionTest)

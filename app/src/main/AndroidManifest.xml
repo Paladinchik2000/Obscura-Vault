@@ -40,7 +40,8 @@
         <service
             android:name=".credentials.ObscuraCredentialProviderService"
             android:permission="android.permission.PROVIDE_CREDENTIALS"
-            android:exported="true">
+            android:exported="true"
+            tools:targetApi="34">
             <intent-filter>
                 <action android:name="android.service.credentials.CredentialProviderService" />
             </intent-filter>
