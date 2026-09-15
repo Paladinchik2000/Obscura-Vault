@@ -10,10 +10,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.obscura.security.VaultSession
 import com.obscura.ui.auth.LoginScreen
+import com.obscura.ui.backup.BackupScreen
 
 object Routes {
     const val LOGIN = "login"
     const val VAULT = "vault"
+    const val BACKUP = "backup"
 }
 
 @Composable
@@ -61,7 +63,15 @@ fun ObscuraNavHost(navController: NavHostController = rememberNavController()) {
             // TODO: replace with the real vault list screen.
             // Access entries via VaultRepositoryImpl: its queries run in the VaultSession scope,
             // which lock() cancels and waits for before closing the database.
-            VaultPlaceholderScreen(onLock = { VaultSession.requestLock() })
+            VaultPlaceholderScreen(
+                onLock = { VaultSession.requestLock() },
+                onOpenBackup = { navController.navigate(Routes.BACKUP) { launchSingleTop = true } }
+            )
+        }
+
+        // Reachable only from the unlocked graph; locking pops it together with everything else.
+        composable(Routes.BACKUP) {
+            BackupScreen(onBack = { navController.popBackStack() })
         }
     }
 }

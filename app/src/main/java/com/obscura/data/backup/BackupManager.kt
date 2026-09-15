@@ -1,17 +1,25 @@
 package com.obscura.data.backup
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.annotation.Keep
 import com.obscura.data.local.VaultEntity
 import com.obscura.security.BackupCryptoUtils
+import com.obscura.security.BackupFormatException
 import com.obscura.security.UnsupportedBackupVersionException
 import com.obscura.security.VaultSession
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.InputStream
+import java.io.DataInputStream
+import java.io.EOFException
+import java.io.File
 import java.io.OutputStream
 
 /**
@@ -28,6 +36,15 @@ data class BackupPayload(
     val entries: List<VaultEntity>
 )
 
+/** How imported entries are combined with what is already in the vault. */
+enum class ImportMode {
+    /** Delete every existing entry, then insert the entries from the backup. */
+    REPLACE,
+
+    /** Keep existing entries; an entry with the same id is overwritten by the copy from the backup. */
+    MERGE
+}
+
 /**
  * BackupManager
  *
@@ -43,29 +60,84 @@ data class BackupPayload(
 class BackupManager(private val context: Context) {
 
     /**
-     * Exports all Vault entries into an encrypted JSON file using a user-supplied password.
+     * Exports all Vault entries into an encrypted file at [uri]. [uri] must be a new document
+     * (as created by ACTION_CREATE_DOCUMENT): if anything fails — including the vault locking
+     * midway — the document is deleted so no empty or partial backup is left behind.
      */
     suspend fun exportVaultToFile(uri: Uri, password: CharArray): Result<Int> =
-        exportVault(password) { context.contentResolver.openOutputStream(uri) }
+        exportVault(password) { context.contentResolver.openOutputStream(uri, "wt") }
+            .onFailure { deleteQuietly(uri) }
 
     /**
-     * Imports entries from an encrypted JSON backup file and saves them into the Room DB.
+     * Reads formatVersion from the clear-text header only; no password is involved.
+     * Fails with UnsupportedBackupVersionException for another version and with
+     * BackupFormatException if the file is not an Obscura backup.
+     */
+    suspend fun readFormatVersion(uri: Uri): Result<Int> = resultOf {
+        withContext(Dispatchers.IO) {
+            val header = ByteArray(BackupCryptoUtils.HEADER_SIZE_BYTES)
+            val input = context.contentResolver.openInputStream(uri)
+                ?: throw IllegalStateException("Could not open input stream for SAF URI: $uri")
+            input.use {
+                try {
+                    DataInputStream(it).readFully(header)
+                } catch (e: EOFException) {
+                    throw BackupFormatException("Not an Obscura Vault backup file")
+                }
+            }
+            val version = BackupCryptoUtils.readFormatVersion(header)
+            if (version != BackupCryptoUtils.FORMAT_VERSION) {
+                throw UnsupportedBackupVersionException(version, BackupCryptoUtils.FORMAT_VERSION)
+            }
+            version
+        }
+    }
+
+    /**
+     * Decrypts and parses a backup without writing anything. Runs in the vault session, so
+     * plaintext entries are only produced while the vault is unlocked.
+     */
+    suspend fun decryptBackup(uri: Uri, password: CharArray): Result<List<VaultEntity>> = resultOf {
+        VaultSession.runInSession {
+            val encryptedBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                ?: throw IllegalStateException("Could not open input stream for SAF URI: $uri")
+            deserializeJsonToEntries(BackupCryptoUtils.decryptPayload(encryptedBytes, password))
+        }
+    }
+
+    /** Writes [entries] in one transaction: a failure or a lock midway rolls the whole import back. */
+    suspend fun restore(entries: List<VaultEntity>, mode: ImportMode): Result<Int> = resultOf {
+        VaultSession.runInTransaction {
+            val dao = VaultSession.requireDatabase().vaultDao()
+            if (mode == ImportMode.REPLACE) dao.clearAll()
+            dao.insertAll(entries)
+            entries.size
+        }
+    }
+
+    /** Number of entries currently in the vault. */
+    suspend fun countEntries(): Result<Int> = resultOf {
+        VaultSession.runInSession { VaultSession.requireDatabase().vaultDao().getEntriesCount().first() }
+    }
+
+    /**
+     * Decrypts and restores in one call.
      * Fails with UnsupportedBackupVersionException for backups of another format version.
      */
-    suspend fun importVaultFromFile(uri: Uri, password: CharArray): Result<Int> = resultOf {
-        VaultSession.runInSession {
-            val encryptedBytes = context.contentResolver.openInputStream(uri)?.use { inputStream: InputStream ->
-                inputStream.readBytes()
-            } ?: throw IllegalStateException("Could not open input stream for SAF URI: $uri")
+    suspend fun importVaultFromFile(uri: Uri, password: CharArray, mode: ImportMode = ImportMode.MERGE): Result<Int> =
+        decryptBackup(uri, password).fold(
+            onSuccess = { entries -> restore(entries, mode) },
+            onFailure = { Result.failure(it) }
+        )
 
-            val decryptedJson = BackupCryptoUtils.decryptPayload(encryptedBytes, password)
-            val importedEntries = deserializeJsonToEntries(decryptedJson)
-
-            // One transaction for all rows: a lock or failure midway rolls the whole import back.
-            VaultSession.runInTransaction {
-                VaultSession.requireDatabase().vaultDao().insertAll(importedEntries)
+    private fun deleteQuietly(uri: Uri) {
+        runCatching {
+            when {
+                uri.scheme == ContentResolver.SCHEME_FILE -> uri.path?.let { File(it).delete() }
+                DocumentsContract.isDocumentUri(context, uri) ->
+                    DocumentsContract.deleteDocument(context.contentResolver, uri)
+                else -> Unit
             }
-            importedEntries.size
         }
     }
 

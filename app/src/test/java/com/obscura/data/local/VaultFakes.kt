@@ -38,8 +38,11 @@ class FakeVaultDao(
 
     override suspend fun getAllEntriesDirect(): List<VaultEntity> = onGetAllEntriesDirect()
 
+    override suspend fun insertEntry(entry: VaultEntity) {
+        entriesFlow.value = entriesFlow.value.filterNot { it.id == entry.id } + entry
+    }
+
     override suspend fun getEntryById(id: String): VaultEntity? = unused()
-    override suspend fun insertEntry(entry: VaultEntity) = unused()
     override suspend fun updateEntry(entry: VaultEntity) = unused()
     override suspend fun deleteEntry(entry: VaultEntity) = unused()
     override suspend fun deleteEntryById(id: String) = unused()

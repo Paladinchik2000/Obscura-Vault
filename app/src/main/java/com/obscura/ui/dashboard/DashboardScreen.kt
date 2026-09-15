@@ -64,6 +64,7 @@ import com.obscura.ui.theme.SecurityYellow
 import com.obscura.ui.theme.TextMuted
 import com.obscura.ui.theme.TextPrimary
 import com.obscura.ui.theme.TextSecondary
+import com.obscura.ui.backup.BackupReminderDialog
 
 @Composable
 fun DashboardScreen(
@@ -80,7 +81,10 @@ fun DashboardScreen(
     onToggleFavorite: (VaultEntity) -> Unit,
     onLockVault: () -> Unit,
     onNavigateAudit: () -> Unit,
-    onClearToast: () -> Unit
+    onClearToast: () -> Unit,
+    showBackupReminder: Boolean = false,
+    onOpenBackup: () -> Unit = {},
+    onBackupReminderHandled: () -> Unit = {}
 ) {
     val clipboardManager = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -336,6 +340,13 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+
+    if (showBackupReminder) {
+        BackupReminderDialog(
+            onMakeBackup = { onBackupReminderHandled(); onOpenBackup() },
+            onDismiss = onBackupReminderHandled
+        )
     }
 }
 

@@ -9,6 +9,7 @@ import com.obscura.data.repository.VaultRepository
 import com.obscura.security.PasswordGenerator
 import com.obscura.security.VaultLockedException
 import com.obscura.security.VaultSession
+import com.obscura.ui.backup.BackupReminderStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -35,12 +36,16 @@ data class VaultUiState(
     val favoritesCount: Int = 0,
     val isLoading: Boolean = false,
     val toastMessage: String? = null,
-    val selectedItemForEdit: VaultEntity? = null
+    val selectedItemForEdit: VaultEntity? = null,
+    val showBackupReminder: Boolean = false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Keep
-class VaultViewModel(private val repository: VaultRepository) : ViewModel() {
+class VaultViewModel(
+    private val repository: VaultRepository,
+    private val backupReminder: BackupReminderStore
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VaultUiState())
     val uiState: StateFlow<VaultUiState> = _uiState.asStateFlow()
@@ -154,8 +159,19 @@ class VaultViewModel(private val repository: VaultRepository) : ViewModel() {
     }
 
     fun saveEntry(entry: VaultEntity) = inSession {
+        val isNewEntry = entry.id.isBlank()
         repository.saveEntry(entry)
+        // Once, after the first entry is created: the keys are bound to this device.
+        if (isNewEntry && !backupReminder.wasShown()) {
+            _uiState.update { it.copy(showBackupReminder = true) }
+        }
         showToast("Vault entry saved successfully")
+    }
+
+    /** The reminder was shown and closed, whichever button the user chose. */
+    fun onBackupReminderHandled() {
+        backupReminder.markShown()
+        _uiState.update { it.copy(showBackupReminder = false) }
     }
 
     fun deleteEntry(id: String) = inSession {
