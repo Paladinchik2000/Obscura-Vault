@@ -42,7 +42,7 @@ object BackupCryptoUtils {
     const val FORMAT_VERSION = 1
 
     const val HEADER_SIZE_BYTES = 6
-    const val PBKDF2_ITERATIONS = 120_000
+    const val PBKDF2_ITERATIONS = 600_000
     const val KEY_LENGTH_BITS = 256
     const val SALT_SIZE_BYTES = 16
     const val IV_SIZE_BYTES = 12 // Standard 96-bit GCM IV
@@ -122,7 +122,7 @@ object BackupCryptoUtils {
         ByteBuffer.allocate(HEADER_SIZE_BYTES).put(MAGIC).putShort(version.toShort()).array()
 
     /**
-     * Derives a 256-bit AES key using PBKDF2WithHmacSHA256 with 120,000 iterations.
+     * Derives a 256-bit AES key using PBKDF2WithHmacSHA256 with [PBKDF2_ITERATIONS] iterations.
      */
     @JvmStatic
     private fun deriveKey(password: CharArray, salt: ByteArray): SecretKey {
