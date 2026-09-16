@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.fragment.app.FragmentActivity
 import com.obscura.nav.ObscuraNavHost
-import com.obscura.ui.theme.MyApplicationTheme
+import com.obscura.ui.theme.ObscuraTheme
 
 class MainActivity : FragmentActivity() {
 
@@ -22,7 +22,7 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            MyApplicationTheme {
+            ObscuraTheme {
                 ObscuraNavHost()
             }
         }

@@ -29,7 +29,7 @@ private val ObscuraDarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun MyApplicationTheme(
+fun ObscuraTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {

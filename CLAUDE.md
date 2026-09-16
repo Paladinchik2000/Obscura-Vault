@@ -1,6 +1,6 @@
 # Obscura Password Manager
 
-Android, Kotlin + Jetpack Compose. Пакет `com.obscura`. Тема `MyApplicationTheme`.
+Android, Kotlin + Jetpack Compose. Пакет `com.obscura`. Тема `ObscuraTheme`.
 minSdk 24, targetSdk 36, compileSdk 37.
 
 ## Архитектура ключей — не менять без обсуждения
