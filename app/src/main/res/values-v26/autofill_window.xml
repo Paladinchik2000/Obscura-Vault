@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 8.0 only: Activity.onCreate throws "Only fullscreen opaque activities can request
+         orientation" for a translucent or floating window with a fixed screenOrientation when
+         targetSdk > 26. The check is gone in 8.1, so values-v27 makes the window translucent again. -->
+    <bool name="autofill_window_translucent">false</bool>
+    <color name="autofill_window_background">@android:color/black</color>
+</resources>

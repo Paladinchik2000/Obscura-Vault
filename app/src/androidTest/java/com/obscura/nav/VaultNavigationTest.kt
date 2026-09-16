@@ -3,6 +3,7 @@ package com.obscura.nav
 import android.content.ClipDescription
 import android.content.Context
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.os.SystemClock
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assert
@@ -41,7 +42,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** The real app from a fresh install: PIN setup, dashboard, editor, reminder, search, rotation and lock. */
+/** The real app from a fresh install: PIN setup, dashboard, editor, reminder, search, recreation and lock. */
 @RunWith(AndroidJUnit4::class)
 class VaultNavigationTest {
 
@@ -128,7 +129,7 @@ class VaultNavigationTest {
     }
 
     @Test
-    fun halfFilledFormSurvivesRotationButNotLock() {
+    fun halfFilledFormSurvivesRecreationButNotLock() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         try {
             createVault()
@@ -139,7 +140,8 @@ class VaultNavigationTest {
             compose.onNodeWithTag(EntryTags.SECRET).performTextInput("half-typed-secret")
             compose.onNodeWithContentDescription(string(R.string.action_show_secret)).performClick()
 
-            recreateByRotating(scenario, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+            // The app is portrait-only, so a configuration change is simulated with recreate().
+            recreate(scenario)
 
             waitForTag(EntryTags.TITLE)
             compose.onNodeWithTag(EntryTags.TITLE).assert(hasText("Half-typed title"))
@@ -149,8 +151,8 @@ class VaultNavigationTest {
                 compose.onAllNodesWithContentDescription(string(R.string.action_hide_secret)).fetchSemanticsNodes().isNotEmpty()
             )
 
-            // And back: a second recreation keeps it too. Portrait also keeps the PIN keypad on screen.
-            recreateByRotating(scenario, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+            // A second recreation keeps it too.
+            recreate(scenario)
             waitForTag(EntryTags.TITLE)
             compose.onNodeWithTag(EntryTags.TITLE).assert(hasText("Half-typed title"))
 
@@ -167,6 +169,25 @@ class VaultNavigationTest {
             compose.onNodeWithTag(EntryTags.SECRET).assert(hasText("half-typed-secret").not())
         } finally {
             scenario.close()
+        }
+    }
+
+    @Test
+    fun everyActivityIsPortraitOnly() {
+        @Suppress("DEPRECATION")
+        val activities = context.packageManager
+            .getPackageInfo(context.packageName, PackageManager.GET_ACTIVITIES)
+            .activities
+            .orEmpty()
+            .filter { it.name.startsWith("com.obscura.") }
+
+        assertTrue("no app activities found", activities.isNotEmpty())
+        activities.forEach { activity ->
+            assertEquals(
+                "${activity.name} must be portrait-only",
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
+                activity.screenOrientation
+            )
         }
     }
 
@@ -191,20 +212,14 @@ class VaultNavigationTest {
         pin.forEach { digit -> compose.onNodeWithText(digit.toString()).performClick() }
     }
 
-    /** Changes orientation and waits until the activity has actually been recreated. */
-    private fun recreateByRotating(scenario: ActivityScenario<MainActivity>, orientation: Int) {
+    /** Recreates the activity, as a configuration change would, and checks it really is a new instance. */
+    private fun recreate(scenario: ActivityScenario<MainActivity>) {
         var before = 0
-        scenario.onActivity {
-            before = System.identityHashCode(it)
-            it.requestedOrientation = orientation
-        }
-        val deadline = SystemClock.uptimeMillis() + TIMEOUT_MS
-        var current = before
-        while (current == before && SystemClock.uptimeMillis() < deadline) {
-            SystemClock.sleep(100)
-            scenario.onActivity { current = System.identityHashCode(it) }
-        }
-        assertNotEquals("activity was not recreated", before, current)
+        scenario.onActivity { before = System.identityHashCode(it) }
+        scenario.recreate()
+        var after = before
+        scenario.onActivity { after = System.identityHashCode(it) }
+        assertNotEquals("activity was not recreated", before, after)
     }
 
     private fun string(@StringRes id: Int, vararg args: Any): String = context.getString(id, *args)

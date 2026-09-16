@@ -3,8 +3,8 @@
     <style name="Theme.MyApplication" parent="android:Theme.DeviceDefault.NoActionBar" />
 
     <style name="Theme.Obscura.TransparentDialog" parent="android:Theme.DeviceDefault.NoActionBar">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@color/autofill_window_background</item>
+        <item name="android:windowIsTranslucent">@bool/autofill_window_translucent</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:backgroundDimEnabled">true</item>
