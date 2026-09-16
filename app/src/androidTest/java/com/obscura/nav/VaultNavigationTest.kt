@@ -4,6 +4,7 @@ import android.content.ClipDescription
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.SystemClock
+import androidx.annotation.StringRes
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -23,9 +24,9 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.obscura.MainActivity
+import com.obscura.R
 import com.obscura.data.local.VaultEntity
 import com.obscura.security.VaultSession
-import com.obscura.ui.backup.BACKUP_REMINDER_TEXT
 import com.obscura.ui.clipboard.SensitiveClipboard
 import com.obscura.ui.dashboard.DashboardTags
 import com.obscura.ui.detail.EntryTags
@@ -69,7 +70,7 @@ class VaultNavigationTest {
             createVault()
 
             // Empty vault: a clear call to action instead of an empty list.
-            compose.onNodeWithText("Add your first entry").performClick()
+            compose.onNodeWithText(string(R.string.dashboard_empty_vault_action)).performClick()
 
             waitForTag(EntryTags.TITLE)
             compose.onNodeWithTag(EntryTags.TITLE).performTextInput("GitHub test")
@@ -78,13 +79,13 @@ class VaultNavigationTest {
             compose.onNodeWithTag(EntryTags.SAVE).performScrollTo().performClick()
 
             // The first created entry brings up the one-time backup reminder on the dashboard.
-            waitForText(BACKUP_REMINDER_TEXT)
-            compose.onNodeWithText("Позже").performClick()
-            waitUntilGone(BACKUP_REMINDER_TEXT)
+            waitForText(string(R.string.backup_reminder_message))
+            compose.onNodeWithText(string(R.string.action_later)).performClick()
+            waitUntilGone(string(R.string.backup_reminder_message))
 
             // Search: a miss shows its own empty state, a hit shows the entry.
             compose.onNodeWithTag(DashboardTags.SEARCH).performTextInput("zzz")
-            waitForText("No entries match", substring = true)
+            waitForText(string(R.string.dashboard_empty_search_title, "zzz"))
             compose.onNodeWithTag(DashboardTags.SEARCH).performTextClearance()
             compose.onNodeWithTag(DashboardTags.SEARCH).performTextInput("GitHub")
             waitForText("GitHub test")
@@ -109,7 +110,7 @@ class VaultNavigationTest {
 
             // Lock: back to login, nothing from the vault left on screen.
             compose.onNodeWithTag(DashboardTags.LOCK).performClick()
-            waitForText("Enter your PIN to unlock")
+            waitForText(string(R.string.login_subtitle_unlock))
             assertFalse(VaultSession.isUnlocked.value)
             assertTrue(compose.onAllNodesWithText("GitHub edited").fetchSemanticsNodes().isEmpty())
             assertTrue(compose.onAllNodesWithTag(DashboardTags.SEARCH).fetchSemanticsNodes().isEmpty())
@@ -131,12 +132,12 @@ class VaultNavigationTest {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         try {
             createVault()
-            compose.onNodeWithText("Add your first entry").performClick()
+            compose.onNodeWithText(string(R.string.dashboard_empty_vault_action)).performClick()
 
             waitForTag(EntryTags.TITLE)
             compose.onNodeWithTag(EntryTags.TITLE).performTextInput("Half-typed title")
             compose.onNodeWithTag(EntryTags.SECRET).performTextInput("half-typed-secret")
-            compose.onNodeWithContentDescription("Show secret").performClick()
+            compose.onNodeWithContentDescription(string(R.string.action_show_secret)).performClick()
 
             recreateByRotating(scenario, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 
@@ -145,7 +146,7 @@ class VaultNavigationTest {
             compose.onNodeWithTag(EntryTags.SECRET).performScrollTo().assert(hasText("half-typed-secret"))
             assertTrue(
                 "secret visibility is part of the form state",
-                compose.onAllNodesWithContentDescription("Hide secret").fetchSemanticsNodes().isNotEmpty()
+                compose.onAllNodesWithContentDescription(string(R.string.action_hide_secret)).fetchSemanticsNodes().isNotEmpty()
             )
 
             // And back: a second recreation keeps it too. Portrait also keeps the PIN keypad on screen.
@@ -155,12 +156,12 @@ class VaultNavigationTest {
 
             // Lock from the editor: back to login; after unlocking, a new entry starts empty.
             VaultSession.requestLock()
-            waitForText("Enter your PIN to unlock")
+            waitForText(string(R.string.login_subtitle_unlock))
             assertTrue(compose.onAllNodesWithText("Half-typed title").fetchSemanticsNodes().isEmpty())
 
             enterPin(PIN)
-            waitForText("Your vault is empty")
-            compose.onNodeWithText("Add your first entry").performClick()
+            waitForText(string(R.string.dashboard_empty_vault_title))
+            compose.onNodeWithText(string(R.string.dashboard_empty_vault_action)).performClick()
             waitForTag(EntryTags.TITLE)
             compose.onNodeWithTag(EntryTags.TITLE).assert(hasText("Half-typed title").not())
             compose.onNodeWithTag(EntryTags.SECRET).assert(hasText("half-typed-secret").not())
@@ -171,7 +172,7 @@ class VaultNavigationTest {
 
     @Test
     fun copiedSecretsAreMarkedSensitive() {
-        val clip = SensitiveClipboard.sensitiveClip("s3cret")
+        val clip = SensitiveClipboard.sensitiveClip(string(R.string.clipboard_label), "s3cret")
 
         assertTrue(clip.description.extras.getBoolean(ClipDescription.EXTRA_IS_SENSITIVE))
         assertEquals(30_000L, SensitiveClipboard.CLEAR_AFTER_MS)
@@ -179,11 +180,11 @@ class VaultNavigationTest {
 
     /** Fresh install: create the PIN and wait for the empty dashboard. */
     private fun createVault() {
-        waitForText("Create a PIN")
+        waitForText(string(R.string.login_title_create_pin))
         enterPin(PIN)
-        waitForText("Confirm your PIN")
+        waitForText(string(R.string.login_title_confirm_pin))
         enterPin(PIN)
-        waitForText("Your vault is empty")
+        waitForText(string(R.string.dashboard_empty_vault_title))
     }
 
     private fun enterPin(pin: String) {
@@ -205,6 +206,8 @@ class VaultNavigationTest {
         }
         assertNotEquals("activity was not recreated", before, current)
     }
+
+    private fun string(@StringRes id: Int, vararg args: Any): String = context.getString(id, *args)
 
     private fun storedEntries(): List<VaultEntity> = runBlocking {
         VaultSession.runInSession { VaultSession.requireDatabase().vaultDao().getAllEntriesDirect() }

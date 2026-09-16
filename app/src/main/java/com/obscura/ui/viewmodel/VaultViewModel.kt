@@ -3,6 +3,7 @@ package com.obscura.ui.viewmodel
 import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.obscura.R
 import com.obscura.data.local.VaultEntity
 import com.obscura.data.model.VaultCategory
 import com.obscura.data.repository.VaultRepository
@@ -10,6 +11,8 @@ import com.obscura.security.PasswordGenerator
 import com.obscura.security.VaultLockedException
 import com.obscura.security.VaultSession
 import com.obscura.ui.backup.BackupReminderStore
+import com.obscura.ui.common.UiText
+import com.obscura.ui.common.uiText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -25,18 +28,13 @@ import kotlinx.coroutines.launch
 
 @Keep
 data class VaultUiState(
-    val isAuthenticated: Boolean = false,
-    val authError: String? = null,
-    val pinInput: String = "",
     val searchQuery: String = "",
     val selectedCategoryFilter: VaultCategory? = null, // null means "All"
     val entries: List<VaultEntity> = emptyList(),
     val totalEntriesCount: Int = 0,
     val weakPasswordsCount: Int = 0,
     val favoritesCount: Int = 0,
-    val isLoading: Boolean = false,
-    val toastMessage: String? = null,
-    val selectedItemForEdit: VaultEntity? = null,
+    val toastMessage: UiText? = null,
     val showBackupReminder: Boolean = false
 )
 
@@ -169,42 +167,6 @@ class VaultViewModel(
         _uiState.value = VaultUiState()
     }
 
-    fun onBiometricAuthSuccess() {
-        _uiState.update { it.copy(isAuthenticated = true, authError = null) }
-    }
-
-    fun onBiometricAuthError(error: String) {
-        _uiState.update { it.copy(authError = error) }
-    }
-
-    fun onPinDigitEntered(digit: String) {
-        val currentPin = _uiState.value.pinInput
-        if (currentPin.length < 6) {
-            val newPin = currentPin + digit
-            _uiState.update { it.copy(pinInput = newPin, authError = null) }
-
-            // Auto-verify PIN code 123456 or custom local PIN
-            if (newPin.length == 6) {
-                if (newPin == "123456" || newPin == "000000") {
-                    onBiometricAuthSuccess()
-                } else {
-                    _uiState.update { it.copy(pinInput = "", authError = "Invalid PIN Code. Try 123456") }
-                }
-            }
-        }
-    }
-
-    fun onPinBackspace() {
-        val currentPin = _uiState.value.pinInput
-        if (currentPin.isNotEmpty()) {
-            _uiState.update { it.copy(pinInput = currentPin.dropLast(1)) }
-        }
-    }
-
-    fun lockVault() {
-        _uiState.update { it.copy(isAuthenticated = false, pinInput = "") }
-    }
-
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
         _uiState.update { it.copy(searchQuery = query) }
@@ -286,7 +248,7 @@ class VaultViewModel(
         if (isNewEntry && !backupReminder.wasShown()) {
             _uiState.update { it.copy(showBackupReminder = true) }
         }
-        showToast("Vault entry saved successfully")
+        showToast(uiText(R.string.entry_saved))
     }
 
     /** The reminder was shown and closed, whichever button the user chose. */
@@ -297,10 +259,10 @@ class VaultViewModel(
 
     fun deleteEntry(id: String) = inSession {
         repository.deleteEntry(id)
-        showToast("Item deleted from vault")
+        showToast(uiText(R.string.entry_deleted))
     }
 
-    fun showToast(message: String) {
+    fun showToast(message: UiText) {
         _uiState.update { it.copy(toastMessage = message) }
     }
 
@@ -316,7 +278,7 @@ class VaultViewModel(
         try {
             VaultSession.launchInSession(block)
         } catch (e: VaultLockedException) {
-            showToast("Vault is locked")
+            showToast(uiText(R.string.error_vault_locked))
         }
     }
 }

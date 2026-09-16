@@ -51,14 +51,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.obscura.R
 import com.obscura.data.local.VaultEntity
 import com.obscura.data.model.VaultCategory
 import com.obscura.ui.backup.BackupReminderDialog
 import com.obscura.ui.clipboard.SensitiveClipboard
+import com.obscura.ui.common.UiText
+import com.obscura.ui.common.labelRes
 import com.obscura.ui.theme.CanvasBlack
 import com.obscura.ui.theme.CardBackground
 import com.obscura.ui.theme.CardBorder
@@ -84,7 +88,7 @@ fun DashboardScreen(
     weakPasswordsCount: Int,
     searchQuery: String,
     selectedCategory: VaultCategory?,
-    toastMessage: String?,
+    toastMessage: UiText?,
     onSearchQueryChanged: (String) -> Unit,
     onCategorySelected: (VaultCategory?) -> Unit,
     onItemClick: (VaultEntity) -> Unit,
@@ -102,7 +106,7 @@ fun DashboardScreen(
 
     LaunchedEffect(toastMessage) {
         toastMessage?.let {
-            snackbarHostState.showSnackbar(it)
+            snackbarHostState.showSnackbar(it.asString(context))
             onClearToast()
         }
     }
@@ -121,7 +125,7 @@ fun DashboardScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add Entry",
+                    contentDescription = stringResource(R.string.dashboard_add_entry),
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -143,7 +147,7 @@ fun DashboardScreen(
             ) {
                 Column {
                     Text(
-                        text = "OBSCURA VAULT",
+                        text = stringResource(R.string.dashboard_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
@@ -162,7 +166,7 @@ fun DashboardScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "OFFLINE • SQLCipher Encrypted",
+                            text = stringResource(R.string.dashboard_status_offline),
                             style = MaterialTheme.typography.bodySmall,
                             color = SecurityGreen,
                             fontSize = 11.sp
@@ -182,7 +186,7 @@ fun DashboardScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Backup,
-                            contentDescription = "Backup",
+                            contentDescription = stringResource(R.string.dashboard_open_backup),
                             tint = CrimsonPrimary
                         )
                     }
@@ -200,7 +204,7 @@ fun DashboardScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Lock Vault",
+                            contentDescription = stringResource(R.string.dashboard_lock_vault),
                             tint = TextPrimary
                         )
                     }
@@ -221,7 +225,7 @@ fun DashboardScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 MetricTile(
-                    title = "Total Secrets",
+                    title = stringResource(R.string.dashboard_metric_total),
                     value = totalEntriesCount.toString(),
                     icon = Icons.Default.Shield,
                     iconColor = CrimsonPrimary
@@ -235,7 +239,7 @@ fun DashboardScreen(
                 )
 
                 MetricTile(
-                    title = "Weak Passwords",
+                    title = stringResource(R.string.dashboard_metric_weak),
                     value = weakPasswordsCount.toString(),
                     icon = Icons.Default.Warning,
                     iconColor = if (weakPasswordsCount > 0) SecurityRed else SecurityGreen
@@ -251,11 +255,11 @@ fun DashboardScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(DashboardTags.SEARCH),
-                placeholder = { Text("Search by title, username or tag...", color = TextMuted) },
+                placeholder = { Text(stringResource(R.string.dashboard_search_placeholder), color = TextMuted) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
+                        contentDescription = stringResource(R.string.dashboard_search),
                         tint = CrimsonPrimary
                     )
                 },
@@ -264,7 +268,7 @@ fun DashboardScreen(
                         IconButton(onClick = { onSearchQueryChanged("") }) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear",
+                                contentDescription = stringResource(R.string.dashboard_search_clear),
                                 tint = TextMuted
                             )
                         }
@@ -291,7 +295,7 @@ fun DashboardScreen(
             ) {
                 item {
                     CategoryChip(
-                        title = "All",
+                        title = stringResource(R.string.dashboard_filter_all),
                         isSelected = selectedCategory == null,
                         onClick = { onCategorySelected(null) }
                     )
@@ -299,7 +303,7 @@ fun DashboardScreen(
 
                 items(VaultCategory.entries.toTypedArray()) { category ->
                     CategoryChip(
-                        title = category.title,
+                        title = stringResource(category.labelRes()),
                         isSelected = selectedCategory == category,
                         onClick = { onCategorySelected(category) }
                     )
@@ -333,7 +337,12 @@ fun DashboardScreen(
                             onCopySecret = { secret ->
                                 SensitiveClipboard.copy(context, secret)
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Copied. The clipboard is cleared in 30 seconds.")
+                                    snackbarHostState.showSnackbar(
+                                        context.getString(
+                                            R.string.clipboard_copied_notice,
+                                            (SensitiveClipboard.CLEAR_AFTER_MS / 1000).toInt()
+                                        )
+                                    )
                                 }
                             },
                             onToggleFavorite = { onToggleFavorite(item) }
@@ -362,13 +371,16 @@ private fun EmptyVaultState(
     onShowAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val (title, body) = when {
-        searchQuery.isNotBlank() ->
-            "No entries match “$searchQuery”" to "Try another word, or clear the search."
+    val title = when {
+        searchQuery.isNotBlank() -> stringResource(R.string.dashboard_empty_search_title, searchQuery)
         selectedCategory != null ->
-            "No ${selectedCategory.title} entries yet" to "Add one, or show every entry."
-        else ->
-            "Your vault is empty" to "Add your first password, card or secure note. It stays encrypted on this device."
+            stringResource(R.string.dashboard_empty_category_title, stringResource(selectedCategory.labelRes()))
+        else -> stringResource(R.string.dashboard_empty_vault_title)
+    }
+    val body = when {
+        searchQuery.isNotBlank() -> stringResource(R.string.dashboard_empty_search_body)
+        selectedCategory != null -> stringResource(R.string.dashboard_empty_category_body)
+        else -> stringResource(R.string.dashboard_empty_vault_body)
     }
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
@@ -399,7 +411,9 @@ private fun EmptyVaultState(
             Spacer(modifier = Modifier.height(20.dp))
 
             if (searchQuery.isNotBlank()) {
-                TextButton(onClick = onClearSearch) { Text("Clear search", color = CrimsonPrimary) }
+                TextButton(onClick = onClearSearch) {
+                    Text(stringResource(R.string.dashboard_empty_search_action), color = CrimsonPrimary)
+                }
             } else {
                 Button(
                     onClick = onAddNewClick,
@@ -408,12 +422,17 @@ private fun EmptyVaultState(
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (selectedCategory == null) "Add your first entry" else "Add entry",
+                        text = stringResource(
+                            if (selectedCategory == null) R.string.dashboard_empty_vault_action
+                            else R.string.dashboard_empty_category_add
+                        ),
                         fontWeight = FontWeight.Bold
                     )
                 }
                 if (selectedCategory != null) {
-                    TextButton(onClick = onShowAll) { Text("Show all", color = CrimsonPrimary) }
+                    TextButton(onClick = onShowAll) {
+                        Text(stringResource(R.string.dashboard_empty_category_show_all), color = CrimsonPrimary)
+                    }
                 }
             }
         }

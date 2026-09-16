@@ -3,7 +3,6 @@ package com.obscura.security
 import androidx.annotation.Keep
 import java.security.SecureRandom
 import kotlin.math.log2
-import kotlin.math.pow
 
 /**
  * Cryptographically Secure Password & Secret Generator
@@ -25,11 +24,13 @@ object PasswordGenerator {
         val includeSymbols: Boolean = true
     )
 
+    /** Display text for each level lives in string resources (see ui/common/Labels.kt). */
+    enum class StrengthLevel { EMPTY, WEAK, MEDIUM, STRONG, EXCELLENT }
+
     data class PasswordStrength(
         val score: Int, // 0 to 100
-        val label: String, // Weak, Medium, Strong, Excellent
-        val entropyBits: Double,
-        val feedback: List<String>
+        val level: StrengthLevel,
+        val entropyBits: Double
     )
 
     /**
@@ -73,39 +74,26 @@ object PasswordGenerator {
      */
     fun evaluateStrength(password: String): PasswordStrength {
         if (password.isEmpty()) {
-            return PasswordStrength(0, "Empty", 0.0, listOf("Enter or generate a password"))
+            return PasswordStrength(0, StrengthLevel.EMPTY, 0.0)
         }
 
         var poolSize = 0
-        val hasLower = password.any { it in LOWERCASE }
-        val hasUpper = password.any { it in UPPERCASE }
-        val hasDigit = password.any { it in DIGITS }
-        val hasSymbol = password.any { it in SYMBOLS }
-
-        if (hasLower) poolSize += 26
-        if (hasUpper) poolSize += 26
-        if (hasDigit) poolSize += 10
-        if (hasSymbol) poolSize += SYMBOLS.length
+        if (password.any { it in LOWERCASE }) poolSize += 26
+        if (password.any { it in UPPERCASE }) poolSize += 26
+        if (password.any { it in DIGITS }) poolSize += 10
+        if (password.any { it in SYMBOLS }) poolSize += SYMBOLS.length
 
         if (poolSize == 0) poolSize = 26
 
         val entropyBits = password.length * log2(poolSize.toDouble())
-        val feedback = mutableListOf<String>()
-
-        if (password.length < 12) feedback.add("Length should be at least 12 characters")
-        if (!hasUpper) feedback.add("Add uppercase letters (A-Z)")
-        if (!hasLower) feedback.add("Add lowercase letters (a-z)")
-        if (!hasDigit) feedback.add("Add numbers (0-9)")
-        if (!hasSymbol) feedback.add("Add symbols (!@#$)")
-
         val score = (entropyBits / 1.28).toInt().coerceIn(0, 100)
-        val label = when {
-            score >= 80 -> "Excellent"
-            score >= 60 -> "Strong"
-            score >= 40 -> "Medium"
-            else -> "Weak"
+        val level = when {
+            score >= 80 -> StrengthLevel.EXCELLENT
+            score >= 60 -> StrengthLevel.STRONG
+            score >= 40 -> StrengthLevel.MEDIUM
+            else -> StrengthLevel.WEAK
         }
 
-        return PasswordStrength(score, label, entropyBits, feedback)
+        return PasswordStrength(score, level, entropyBits)
     }
 }

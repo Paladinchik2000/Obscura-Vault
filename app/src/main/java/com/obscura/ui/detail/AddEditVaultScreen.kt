@@ -56,15 +56,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.obscura.R
 import com.obscura.data.model.VaultCategory
 import com.obscura.security.PasswordGenerator
 import com.obscura.ui.clipboard.SensitiveClipboard
+import com.obscura.ui.common.labelRes
 import com.obscura.ui.theme.CanvasBlack
 import com.obscura.ui.theme.CardBackground
 import com.obscura.ui.theme.CardBorder
@@ -122,13 +125,13 @@ fun AddEditVaultScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.action_back),
                             tint = TextPrimary
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isNewEntry) "New Secret Record" else "Edit Secret Record",
+                        text = stringResource(if (isNewEntry) R.string.editor_title_new else R.string.editor_title_edit),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
@@ -139,7 +142,7 @@ fun AddEditVaultScreen(
                     IconButton(onClick = { showDeleteConfirmation = true }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
+                            contentDescription = stringResource(R.string.action_delete),
                             tint = SecurityRed
                         )
                     }
@@ -157,7 +160,7 @@ fun AddEditVaultScreen(
         ) {
             // Category Selector
             Text(
-                text = "Select Category",
+                text = stringResource(R.string.editor_select_category),
                 style = MaterialTheme.typography.labelLarge,
                 color = TextSecondary
             )
@@ -183,7 +186,7 @@ fun AddEditVaultScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = cat.title,
+                            text = stringResource(cat.labelRes()),
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             color = if (isSelected) CanvasBlack else TextPrimary,
@@ -197,66 +200,66 @@ fun AddEditVaultScreen(
 
             // Dynamic Form Fields
             CustomInputField(
-                label = "Title / Service Name",
+                label = stringResource(R.string.editor_field_title),
                 value = form.title,
                 onValueChange = { value ->
                     onFormChange { it.copy(title = value, titleError = it.titleError && value.isBlank()) }
                 },
-                placeholder = "e.g. GitHub, Chase Bank, Server Key",
+                placeholder = stringResource(R.string.editor_field_title_hint),
                 isError = form.titleError,
-                errorText = "A title is required",
+                errorText = stringResource(R.string.editor_error_title_required),
                 testTag = EntryTags.TITLE
             )
 
             when (form.category) {
                 VaultCategory.ACCOUNT -> {
                     CustomInputField(
-                        label = "Website / App URL",
+                        label = stringResource(R.string.editor_field_url),
                         value = form.urlOrCardNumber,
                         onValueChange = { value -> onFormChange { it.copy(urlOrCardNumber = value) } },
-                        placeholder = "e.g. https://github.com"
+                        placeholder = stringResource(R.string.editor_field_url_hint)
                     )
 
                     CustomInputField(
-                        label = "Username / Email",
+                        label = stringResource(R.string.editor_field_username),
                         value = form.usernameOrCardholder,
                         onValueChange = { value -> onFormChange { it.copy(usernameOrCardholder = value) } },
-                        placeholder = "user@example.com",
+                        placeholder = stringResource(R.string.editor_field_username_hint),
                         testTag = EntryTags.USERNAME
                     )
                 }
 
                 VaultCategory.BANK_CARD -> {
                     CustomInputField(
-                        label = "Cardholder Name",
+                        label = stringResource(R.string.editor_field_cardholder),
                         value = form.usernameOrCardholder,
                         onValueChange = { value -> onFormChange { it.copy(usernameOrCardholder = value) } },
-                        placeholder = "JOHN DOE",
+                        placeholder = stringResource(R.string.editor_field_cardholder_hint),
                         testTag = EntryTags.USERNAME
                     )
 
                     CustomInputField(
-                        label = "Card Number",
+                        label = stringResource(R.string.editor_field_card_number),
                         value = form.urlOrCardNumber,
                         onValueChange = { value -> onFormChange { it.copy(urlOrCardNumber = value) } },
-                        placeholder = "4532 •••• •••• 8892"
+                        placeholder = stringResource(R.string.editor_field_card_number_hint)
                     )
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.weight(1f)) {
                             CustomInputField(
-                                label = "Expiry Date",
+                                label = stringResource(R.string.editor_field_expiry),
                                 value = form.expiryDate,
                                 onValueChange = { value -> onFormChange { it.copy(expiryDate = value) } },
-                                placeholder = "MM/YY"
+                                placeholder = stringResource(R.string.editor_field_expiry_hint)
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             CustomInputField(
-                                label = "CVV / CVC",
+                                label = stringResource(R.string.editor_field_cvv),
                                 value = form.notesOrCvv,
                                 onValueChange = { value -> onFormChange { it.copy(notesOrCvv = value) } },
-                                placeholder = "•••"
+                                placeholder = stringResource(R.string.editor_field_cvv_hint)
                             )
                         }
                     }
@@ -264,10 +267,10 @@ fun AddEditVaultScreen(
 
                 VaultCategory.SECURE_NOTE, VaultCategory.API_KEY -> {
                     CustomInputField(
-                        label = "Tags / Context",
+                        label = stringResource(R.string.editor_field_tags),
                         value = form.tags,
                         onValueChange = { value -> onFormChange { it.copy(tags = value) } },
-                        placeholder = "e.g. Work, Production, Personal"
+                        placeholder = stringResource(R.string.editor_field_tags_hint)
                     )
                 }
             }
@@ -280,12 +283,14 @@ fun AddEditVaultScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = when (form.category) {
-                            VaultCategory.ACCOUNT -> "Password"
-                            VaultCategory.BANK_CARD -> "PIN / Security Code"
-                            VaultCategory.SECURE_NOTE -> "Secret Text"
-                            VaultCategory.API_KEY -> "API Key / Token"
-                        },
+                        text = stringResource(
+                            when (form.category) {
+                                VaultCategory.ACCOUNT -> R.string.editor_secret_password
+                                VaultCategory.BANK_CARD -> R.string.editor_secret_pin
+                                VaultCategory.SECURE_NOTE -> R.string.editor_secret_text
+                                VaultCategory.API_KEY -> R.string.editor_secret_api_key
+                            }
+                        ),
                         style = MaterialTheme.typography.labelLarge,
                         color = TextSecondary
                     )
@@ -294,24 +299,29 @@ fun AddEditVaultScreen(
                         TextButton(onClick = { showGeneratorDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = "Generate",
+                                contentDescription = null,
                                 tint = CrimsonPrimary,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Generate", color = CrimsonPrimary)
+                            Text(stringResource(R.string.editor_generate), color = CrimsonPrimary)
                         }
 
                         if (form.secretValue.isNotEmpty()) {
                             IconButton(onClick = {
                                 SensitiveClipboard.copy(context, form.secretValue)
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Copied. The clipboard is cleared in 30 seconds.")
+                                    snackbarHostState.showSnackbar(
+                                        context.getString(
+                                            R.string.clipboard_copied_notice,
+                                            (SensitiveClipboard.CLEAR_AFTER_MS / 1000).toInt()
+                                        )
+                                    )
                                 }
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copy",
+                                    contentDescription = stringResource(R.string.action_copy),
                                     tint = TextSecondary,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -331,7 +341,9 @@ fun AddEditVaultScreen(
                         IconButton(onClick = { onFormChange { it.copy(isSecretVisible = !it.isSecretVisible) } }) {
                             Icon(
                                 imageVector = if (form.isSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (form.isSecretVisible) "Hide secret" else "Show secret",
+                                contentDescription = stringResource(
+                                    if (form.isSecretVisible) R.string.action_hide_secret else R.string.action_show_secret
+                                ),
                                 tint = TextSecondary
                             )
                         }
@@ -374,7 +386,11 @@ fun AddEditVaultScreen(
                         Spacer(modifier = Modifier.width(12.dp))
 
                         Text(
-                            text = "${strength.label} (${strength.entropyBits.toInt()} bits)",
+                            text = stringResource(
+                                R.string.editor_strength,
+                                stringResource(strength.level.labelRes()),
+                                strength.entropyBits.toInt()
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = scoreColor,
                             fontWeight = FontWeight.Bold
@@ -385,10 +401,10 @@ fun AddEditVaultScreen(
 
             if (form.category == VaultCategory.SECURE_NOTE) {
                 CustomInputField(
-                    label = "Secure Notes",
+                    label = stringResource(R.string.editor_field_notes),
                     value = form.notesOrCvv,
                     onValueChange = { value -> onFormChange { it.copy(notesOrCvv = value) } },
-                    placeholder = "Additional encrypted notes...",
+                    placeholder = stringResource(R.string.editor_field_notes_hint),
                     singleLine = false
                 )
             }
@@ -408,7 +424,7 @@ fun AddEditVaultScreen(
                 Icon(imageVector = Icons.Default.Save, contentDescription = null, tint = CanvasBlack)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Save Encrypted Record",
+                    text = stringResource(R.string.editor_save),
                     color = CanvasBlack,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -432,12 +448,11 @@ fun AddEditVaultScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
             containerColor = CardBackground,
-            title = { Text("Delete this entry?", color = TextPrimary, fontWeight = FontWeight.Bold) },
+            title = {
+                Text(stringResource(R.string.editor_delete_title), color = TextPrimary, fontWeight = FontWeight.Bold)
+            },
             text = {
-                Text(
-                    "“${form.title}” will be removed from the vault. This cannot be undone.",
-                    color = TextSecondary
-                )
+                Text(stringResource(R.string.editor_delete_message, form.title), color = TextSecondary)
             },
             confirmButton = {
                 Button(
@@ -447,12 +462,12 @@ fun AddEditVaultScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = SecurityRed)
                 ) {
-                    Text("Delete", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.action_delete), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel", color = TextMuted)
+                    Text(stringResource(R.string.action_cancel), color = TextMuted)
                 }
             }
         )
@@ -536,7 +551,7 @@ fun PasswordGeneratorDialog(
         onDismissRequest = onDismiss,
         containerColor = CardBackground,
         title = {
-            Text("Generator Settings", color = TextPrimary, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.generator_title), color = TextPrimary, fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -551,7 +566,7 @@ fun PasswordGeneratorDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = previewPassword.ifEmpty { "Pick at least one character set" },
+                        text = previewPassword.ifEmpty { stringResource(R.string.generator_no_character_set) },
                         style = MaterialTheme.typography.bodyLarge,
                         fontFamily = FontFamily.Monospace,
                         color = if (previewPassword.isEmpty()) TextMuted else CrimsonPrimary,
@@ -560,7 +575,7 @@ fun PasswordGeneratorDialog(
                 }
 
                 Text(
-                    text = "Length: ${length.toInt()} characters",
+                    text = stringResource(R.string.generator_length, length.toInt()),
                     color = TextSecondary,
                     fontSize = 12.sp
                 )
@@ -576,10 +591,10 @@ fun PasswordGeneratorDialog(
                     )
                 )
 
-                GeneratorOption("Uppercase (A-Z)", useUpper) { useUpper = it }
-                GeneratorOption("Lowercase (a-z)", useLower) { useLower = it }
-                GeneratorOption("Digits (0-9)", useDigits) { useDigits = it }
-                GeneratorOption("Symbols (!@#$)", useSymbols) { useSymbols = it }
+                GeneratorOption(stringResource(R.string.generator_uppercase), useUpper) { useUpper = it }
+                GeneratorOption(stringResource(R.string.generator_lowercase), useLower) { useLower = it }
+                GeneratorOption(stringResource(R.string.generator_digits), useDigits) { useDigits = it }
+                GeneratorOption(stringResource(R.string.generator_symbols), useSymbols) { useSymbols = it }
             }
         },
         confirmButton = {
@@ -588,12 +603,12 @@ fun PasswordGeneratorDialog(
                 enabled = previewPassword.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = CrimsonPrimary)
             ) {
-                Text("Use Password", color = CanvasBlack, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.generator_use_password), color = CanvasBlack, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextMuted)
+                Text(stringResource(R.string.action_cancel), color = TextMuted)
             }
         }
     )

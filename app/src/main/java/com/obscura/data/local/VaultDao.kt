@@ -55,7 +55,7 @@ interface VaultDao {
     suspend fun clearAll()
 
     // =========================================================
-    // ДОБАВЛЕННЫЕ МЕТОДЫ ДЛЯ МЕНЕДЖЕРА БЭКАПОВ (BackupManager)
+    // Methods used by the backup manager (BackupManager)
     // =========================================================
 
     @Query("SELECT * FROM vault_entries")

@@ -13,15 +13,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.obscura.R
 import com.obscura.data.backup.ImportMode
 import com.obscura.data.backup.ImportPreview
 import com.obscura.data.backup.ImportResult
 import com.obscura.security.PasswordGenerator
+import com.obscura.ui.common.asString
+import com.obscura.ui.common.labelRes
 
 @Composable
 fun BackupScreen(
@@ -55,9 +60,13 @@ fun BackupScreen(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack, enabled = !busy) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                 }
-                Text("Резервная копия", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(R.string.backup_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
 
             ExportSection(
@@ -92,38 +101,45 @@ private fun ExportSection(
     onStart: () -> Unit,
     onAcknowledge: () -> Unit
 ) {
-    SectionCard(title = "Экспорт") {
+    SectionCard(title = stringResource(R.string.backup_export_title)) {
         val phase = state.phase
         if (phase is ExportPhase.Done) {
-            Text("Резервная копия сохранена. Записей в файле: ${phase.entryCount}.")
-            Button(onClick = onAcknowledge, modifier = Modifier.fillMaxWidth()) { Text("Готово") }
+            Text(stringResource(R.string.backup_export_done, phase.entryCount))
+            Button(onClick = onAcknowledge, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.action_done))
+            }
             return@SectionCard
         }
 
         Text(
-            "Пароль резервной копии нигде не хранится и не восстанавливается. " +
-                "Если вы его забудете, файл невозможно будет расшифровать.",
+            stringResource(R.string.backup_export_warning),
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodyMedium
         )
-        PasswordField("Пароль резервной копии", state.password, onPasswordChange, enabled = !state.isBusy)
+        PasswordField(stringResource(R.string.backup_password_label), state.password, onPasswordChange, enabled = !state.isBusy)
         if (state.password.isNotEmpty()) StrengthIndicator(state.strength)
-        PasswordField("Повторите пароль", state.confirmation, onConfirmationChange, enabled = !state.isBusy)
+        PasswordField(
+            stringResource(R.string.backup_password_confirm_label),
+            state.confirmation,
+            onConfirmationChange,
+            enabled = !state.isBusy
+        )
 
         val hint = when {
-            state.password.isNotEmpty() && state.isTooShort -> "Минимум $MIN_BACKUP_PASSWORD_LENGTH символов"
-            state.confirmationMismatch -> "Пароли не совпадают"
+            state.password.isNotEmpty() && state.isTooShort ->
+                stringResource(R.string.backup_password_too_short, MIN_BACKUP_PASSWORD_LENGTH)
+            state.confirmationMismatch -> stringResource(R.string.backup_password_mismatch)
             else -> null
         }
         hint?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-        if (phase is ExportPhase.Failed) Text(phase.message, color = MaterialTheme.colorScheme.error)
-        if (state.isBusy) BusyRow("Шифрование… Вывод ключа из пароля занимает несколько секунд.")
+        if (phase is ExportPhase.Failed) Text(phase.message.asString(), color = MaterialTheme.colorScheme.error)
+        if (state.isBusy) BusyRow(stringResource(R.string.backup_export_progress))
 
         Button(
             onClick = onStart,
             enabled = state.canStart && !otherBusy,
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Сохранить резервную копию") }
+        ) { Text(stringResource(R.string.backup_export_action)) }
     }
 }
 
@@ -138,50 +154,53 @@ private fun ImportSection(
     onCancel: () -> Unit,
     onAcknowledge: () -> Unit
 ) {
-    SectionCard(title = "Импорт") {
+    SectionCard(title = stringResource(R.string.backup_import_title)) {
         when (val phase = state.phase) {
             ImportPhase.Idle -> {
-                Text(
-                    "Выберите файл резервной копии (.obvb). Версия формата проверяется до ввода пароля.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(stringResource(R.string.backup_import_intro), style = MaterialTheme.typography.bodyMedium)
                 Button(onClick = onPickFile, enabled = !otherBusy, modifier = Modifier.fillMaxWidth()) {
-                    Text("Выбрать файл")
+                    Text(stringResource(R.string.backup_import_choose_file))
                 }
             }
 
-            ImportPhase.ReadingHeader -> BusyRow("Проверка файла…")
+            ImportPhase.ReadingHeader -> BusyRow(stringResource(R.string.backup_import_checking_file))
 
             is ImportPhase.PasswordRequired -> {
-                PasswordField("Пароль резервной копии", state.password, onPasswordChange, enabled = true)
-                phase.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                PasswordField(stringResource(R.string.backup_password_label), state.password, onPasswordChange, enabled = true)
+                phase.error?.let { Text(it.asString(), color = MaterialTheme.colorScheme.error) }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) { Text("Отмена") }
+                    OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
                     Button(
                         onClick = onDecrypt,
                         enabled = state.password.isNotEmpty(),
                         modifier = Modifier.weight(1f)
-                    ) { Text("Расшифровать") }
+                    ) { Text(stringResource(R.string.backup_import_decrypt)) }
                 }
             }
 
-            ImportPhase.Decrypting -> BusyRow("Проверка пароля и расшифровка… Вывод ключа занимает несколько секунд.")
+            ImportPhase.Decrypting -> BusyRow(stringResource(R.string.backup_import_decrypting))
 
             is ImportPhase.ChooseMode -> ModeChoice(phase.preview, onModeChosen, onCancel)
 
-            ImportPhase.Writing -> BusyRow("Запись в хранилище…")
+            ImportPhase.Writing -> BusyRow(stringResource(R.string.backup_import_writing))
 
             is ImportPhase.Done -> {
                 Text(importResultText(phase.result))
-                Button(onClick = onAcknowledge, modifier = Modifier.fillMaxWidth()) { Text("Готово") }
+                Button(onClick = onAcknowledge, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.action_done))
+                }
             }
 
             is ImportPhase.Failed -> {
-                Text(phase.message, color = MaterialTheme.colorScheme.error)
+                Text(phase.message.asString(), color = MaterialTheme.colorScheme.error)
                 Button(onClick = onPickFile, enabled = !otherBusy, modifier = Modifier.fillMaxWidth()) {
-                    Text("Выбрать другой файл")
+                    Text(stringResource(R.string.backup_import_choose_other_file))
                 }
-                TextButton(onClick = onAcknowledge, modifier = Modifier.fillMaxWidth()) { Text("Закрыть") }
+                TextButton(onClick = onAcknowledge, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.action_close))
+                }
             }
         }
     }
@@ -191,27 +210,24 @@ private fun ImportSection(
 @Composable
 private fun ModeChoice(preview: ImportPreview, onModeChosen: (ImportMode) -> Unit, onCancel: () -> Unit) {
     val merge = preview.merge
-    Text("В файле записей: ${preview.backupEntryCount}. Сейчас в хранилище: ${preview.existingEntryCount}.")
+    Text(stringResource(R.string.backup_import_counts, preview.backupEntryCount, preview.existingEntryCount))
 
-    Text("Объединить", fontWeight = FontWeight.SemiBold)
-    Text("Добавится: ${merge.added}. Обновится: ${merge.updated}. Не изменится: ${merge.unchanged}.")
+    Text(stringResource(R.string.backup_merge_title), fontWeight = FontWeight.SemiBold)
+    Text(stringResource(R.string.backup_merge_counts, merge.added, merge.updated, merge.unchanged))
     if (merge.keptNewer > 0) {
         Text(
-            "Из неизменённых ${merge.keptNewer} — записи, которые в хранилище новее, чем в файле. Они останутся как есть.",
+            LocalContext.current.resources.getQuantityString(R.plurals.backup_merge_kept_newer, merge.keptNewer, merge.keptNewer),
             style = MaterialTheme.typography.bodySmall
         )
     }
-    Text(
-        "При совпадении остаётся запись, изменённая позже; при одинаковом времени изменения — запись из хранилища.",
-        style = MaterialTheme.typography.bodySmall
-    )
+    Text(stringResource(R.string.backup_merge_rule), style = MaterialTheme.typography.bodySmall)
     Button(onClick = { onModeChosen(ImportMode.MERGE) }, modifier = Modifier.fillMaxWidth()) {
-        Text("Объединить")
+        Text(stringResource(R.string.backup_merge_action))
     }
 
-    Text("Заменить", fontWeight = FontWeight.SemiBold)
+    Text(stringResource(R.string.backup_replace_title), fontWeight = FontWeight.SemiBold)
     Text(
-        "Будут удалены все текущие записи (${preview.existingEntryCount}) и записаны записи из файла (${preview.backupEntryCount}).",
+        stringResource(R.string.backup_replace_summary, preview.existingEntryCount, preview.backupEntryCount),
         color = MaterialTheme.colorScheme.error,
         style = MaterialTheme.typography.bodySmall
     )
@@ -222,16 +238,17 @@ private fun ModeChoice(preview: ImportPreview, onModeChosen: (ImportMode) -> Uni
             contentColor = MaterialTheme.colorScheme.onError
         ),
         modifier = Modifier.fillMaxWidth()
-    ) { Text("Заменить все записи") }
+    ) { Text(stringResource(R.string.backup_replace_action)) }
 
-    TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) { Text("Отмена") }
+    TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.action_cancel))
+    }
 }
 
+@Composable
 private fun importResultText(result: ImportResult): String = when (result.mode) {
-    ImportMode.REPLACE ->
-        "Импорт с заменой завершён. Удалено записей: ${result.removed}, записано из файла: ${result.added}."
-    ImportMode.MERGE ->
-        "Импорт завершён. Добавлено: ${result.added}, обновлено: ${result.updated}, без изменений: ${result.unchanged}."
+    ImportMode.REPLACE -> stringResource(R.string.backup_import_done_replace, result.removed, result.added)
+    ImportMode.MERGE -> stringResource(R.string.backup_import_done_merge, result.added, result.updated, result.unchanged)
 }
 
 @Composable
@@ -260,11 +277,10 @@ private fun PasswordField(label: String, value: String, onValueChange: (String) 
 
 @Composable
 private fun StrengthIndicator(strength: PasswordGenerator.PasswordStrength) {
-    val (label, color) = when {
-        strength.score >= 80 -> "отличная" to MaterialTheme.colorScheme.primary
-        strength.score >= 60 -> "высокая" to MaterialTheme.colorScheme.primary
-        strength.score >= 40 -> "средняя" to MaterialTheme.colorScheme.tertiary
-        else -> "слабая" to MaterialTheme.colorScheme.error
+    val color = when (strength.level) {
+        PasswordGenerator.StrengthLevel.EXCELLENT, PasswordGenerator.StrengthLevel.STRONG -> MaterialTheme.colorScheme.primary
+        PasswordGenerator.StrengthLevel.MEDIUM -> MaterialTheme.colorScheme.tertiary
+        PasswordGenerator.StrengthLevel.WEAK, PasswordGenerator.StrengthLevel.EMPTY -> MaterialTheme.colorScheme.error
     }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         LinearProgressIndicator(
@@ -272,7 +288,11 @@ private fun StrengthIndicator(strength: PasswordGenerator.PasswordStrength) {
             color = color,
             modifier = Modifier.fillMaxWidth()
         )
-        Text("Стойкость: $label", color = color, style = MaterialTheme.typography.bodySmall)
+        Text(
+            stringResource(R.string.backup_strength, stringResource(strength.level.labelRes())),
+            color = color,
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }
 

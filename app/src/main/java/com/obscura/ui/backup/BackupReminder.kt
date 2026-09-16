@@ -5,10 +5,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-
-const val BACKUP_REMINDER_TEXT =
-    "Сделайте резервную копию. Ключи привязаны к этому устройству — при потере телефона " +
-        "или удалении приложения данные не восстановить ничем."
+import androidx.compose.ui.res.stringResource
+import com.obscura.R
 
 /** Remembers whether the one-time "make a backup" reminder has been shown. */
 interface BackupReminderStore {
@@ -36,9 +34,9 @@ class PrefsBackupReminderStore(context: Context) : BackupReminderStore {
 fun BackupReminderDialog(onMakeBackup: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Резервная копия") },
-        text = { Text(BACKUP_REMINDER_TEXT) },
-        confirmButton = { TextButton(onClick = onMakeBackup) { Text("Сделать копию") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Позже") } }
+        title = { Text(stringResource(R.string.backup_reminder_title)) },
+        text = { Text(stringResource(R.string.backup_reminder_message)) },
+        confirmButton = { TextButton(onClick = onMakeBackup) { Text(stringResource(R.string.backup_reminder_action)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_later)) } }
     )
 }

@@ -13,15 +13,10 @@ import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
 import androidx.activity.compose.setContent
 import androidx.annotation.Keep
-import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,10 +30,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -56,12 +49,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.obscura.R
 
 /**
  * AutofillBiometricAuthActivity
@@ -128,7 +123,7 @@ class AutofillBiometricAuthActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
 
         // Parse extras delivered by the Autofill service
-        entryTitle = intent.getStringExtra(EXTRA_ENTRY_TITLE) ?: "Obscura Vault Item"
+        entryTitle = intent.getStringExtra(EXTRA_ENTRY_TITLE) ?: getString(R.string.autofill_default_entry_title)
         username = intent.getStringExtra(EXTRA_USERNAME) ?: ""
         secretValue = intent.getStringExtra(EXTRA_SECRET_VALUE) ?: ""
 
@@ -189,8 +184,8 @@ class AutofillBiometricAuthActivity : FragmentActivity() {
         }
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Obscura Vault Autofill")
-            .setSubtitle("Authenticate to autofill $entryTitle")
+            .setTitle(getString(R.string.autofill_prompt_title))
+            .setSubtitle(getString(R.string.autofill_prompt_subtitle, entryTitle))
             .setAllowedAuthenticators(
                 BiometricManager.Authenticators.BIOMETRIC_STRONG or
                         BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -261,7 +256,7 @@ class AutofillBiometricAuthActivity : FragmentActivity() {
 
         if (passwordAutofillId != null && secretValue.isNotEmpty()) {
             val presentation = RemoteViews(packageName, android.R.layout.simple_list_item_1).apply {
-                setTextViewText(android.R.id.text1, "••••••••")
+                setTextViewText(android.R.id.text1, getString(R.string.autofill_masked_password))
             }
             datasetBuilder.setValue(
                 passwordAutofillId!!,
@@ -351,7 +346,7 @@ fun AutofillBiometricAuthScreen(
 
                 // Title & Subtitle
                 Text(
-                    text = "AUTOFILL VERIFICATION",
+                    text = stringResource(R.string.autofill_heading),
                     color = Color.White,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Black,
@@ -361,7 +356,7 @@ fun AutofillBiometricAuthScreen(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Verify biometric identity to release credentials for",
+                    text = stringResource(R.string.autofill_message),
                     color = Color.Gray,
                     fontSize = 12.sp
                 )
@@ -409,7 +404,7 @@ fun AutofillBiometricAuthScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "TARGET ACCOUNT",
+                                    text = stringResource(R.string.autofill_target_account),
                                     color = Color.Gray,
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold
@@ -441,12 +436,12 @@ fun AutofillBiometricAuthScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Fingerprint,
-                        contentDescription = "Fingerprint",
+                        contentDescription = stringResource(R.string.autofill_fingerprint),
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "AUTHENTICATE & AUTOFILL",
+                        text = stringResource(R.string.autofill_authenticate),
                         fontWeight = FontWeight.Black,
                         fontSize = 12.sp,
                         letterSpacing = 0.5.sp
@@ -470,7 +465,7 @@ fun AutofillBiometricAuthScreen(
                     )
                 ) {
                     Text(
-                        text = "CANCEL",
+                        text = stringResource(R.string.autofill_cancel),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )

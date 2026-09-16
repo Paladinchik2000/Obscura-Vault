@@ -41,13 +41,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.obscura.R
 import com.obscura.data.local.VaultEntity
 import com.obscura.data.model.VaultCategory
+import com.obscura.ui.common.labelRes
 import com.obscura.ui.theme.CardBackground
 import com.obscura.ui.theme.CardBorder
 import com.obscura.ui.theme.CategoryAccountColor
@@ -69,6 +71,7 @@ fun VaultItemCard(
     var isRevealed by remember { mutableStateOf(false) }
 
     val category = item.getCategoryEnum()
+    val categoryLabel = stringResource(category.labelRes())
     val categoryColor = when (category) {
         VaultCategory.ACCOUNT -> CategoryAccountColor
         VaultCategory.BANK_CARD -> CategoryCardColor
@@ -109,7 +112,7 @@ fun VaultItemCard(
                     ) {
                         Icon(
                             imageVector = categoryIcon,
-                            contentDescription = category.title,
+                            contentDescription = categoryLabel,
                             tint = categoryColor,
                             modifier = Modifier.size(20.dp)
                         )
@@ -128,7 +131,7 @@ fun VaultItemCard(
                         )
 
                         Text(
-                            text = if (item.usernameOrCardholder.isNotBlank()) item.usernameOrCardholder else category.title,
+                            text = item.usernameOrCardholder.ifBlank { categoryLabel },
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary,
                             maxLines = 1,
@@ -141,7 +144,7 @@ fun VaultItemCard(
                 IconButton(onClick = onToggleFavorite) {
                     Icon(
                         imageVector = if (item.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = "Favorite",
+                        contentDescription = stringResource(R.string.item_favorite),
                         tint = if (item.isFavorite) CrimsonPrimary else TextMuted
                     )
                 }
@@ -194,7 +197,9 @@ fun VaultItemCard(
                         ) {
                             Icon(
                                 imageVector = if (isRevealed) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = "Reveal",
+                                contentDescription = stringResource(
+                                    if (isRevealed) R.string.action_hide_secret else R.string.action_show_secret
+                                ),
                                 tint = TextSecondary,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -207,7 +212,7 @@ fun VaultItemCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ContentCopy,
-                                contentDescription = "Copy",
+                                contentDescription = stringResource(R.string.action_copy),
                                 tint = CrimsonPrimary,
                                 modifier = Modifier.size(18.dp)
                             )

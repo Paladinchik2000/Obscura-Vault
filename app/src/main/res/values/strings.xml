@@ -1,3 +1,187 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Obscura</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+    <string name="action_done">Done</string>
+    <string name="action_later">Later</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_show_secret">Show secret</string>
+    <string name="action_hide_secret">Hide secret</string>
+
+    <!-- Clipboard -->
+    <string name="clipboard_label">Obscura secret</string>
+    <string name="clipboard_copied_notice">Copied. The clipboard is cleared in %1$d seconds.</string>
+
+    <!-- Categories -->
+    <string name="category_account">Account</string>
+    <string name="category_bank_card">Bank Card</string>
+    <string name="category_secure_note">Secure Note</string>
+    <string name="category_api_key">API Key / Secret</string>
+
+    <!-- Password strength -->
+    <string name="strength_empty">Empty</string>
+    <string name="strength_weak">Weak</string>
+    <string name="strength_medium">Medium</string>
+    <string name="strength_strong">Strong</string>
+    <string name="strength_excellent">Excellent</string>
+
+    <!-- Login -->
+    <string name="login_title_create_pin">Create a PIN</string>
+    <string name="login_title_confirm_pin">Confirm your PIN</string>
+    <string name="login_title_unlock">Obscura</string>
+    <string name="login_subtitle_create_pin">%1$d digits, used to protect your vault key</string>
+    <string name="login_subtitle_confirm_pin">Enter it once more</string>
+    <string name="login_subtitle_unlock">Enter your PIN to unlock</string>
+    <string name="login_lockout">Too many attempts. Try again in %1$ds</string>
+    <string name="login_error_with_attempts">%1$s · %2$s</string>
+    <plurals name="login_attempts_left">
+        <item quantity="one">%d attempt left</item>
+        <item quantity="other">%d attempts left</item>
+    </plurals>
+    <string name="keypad_backspace">Delete last digit</string>
+    <string name="keypad_backspace_symbol" translatable="false">⌫</string>
+    <string name="keypad_biometric">Unlock with biometrics</string>
+    <string name="error_incorrect_pin">Incorrect PIN</string>
+    <string name="error_unlock_failed">Unable to unlock the vault</string>
+    <string name="error_pins_do_not_match">PINs don\'t match — start again</string>
+    <string name="error_biometric_unavailable">Biometric unlock unavailable — use your PIN</string>
+    <string name="error_biometrics_changed">Biometrics changed — enter your PIN to re-enable</string>
+    <string name="error_biometric_failed">Biometric authentication failed</string>
+    <string name="biometric_unlock_title">Unlock Obscura</string>
+    <string name="biometric_unlock_subtitle">Confirm your identity to open the vault</string>
+    <string name="biometric_use_pin">Use PIN</string>
+    <string name="biometric_enroll_title">Enable biometric unlock</string>
+    <string name="biometric_enroll_subtitle">Obscura will store a protected copy of your vault key</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">OBSCURA VAULT</string>
+    <string name="dashboard_status_offline">OFFLINE • SQLCipher Encrypted</string>
+    <string name="dashboard_open_backup">Backup</string>
+    <string name="dashboard_lock_vault">Lock Vault</string>
+    <string name="dashboard_add_entry">Add Entry</string>
+    <string name="dashboard_metric_total">Total Secrets</string>
+    <string name="dashboard_metric_weak">Weak Passwords</string>
+    <string name="dashboard_search_placeholder">Search by title, username or tag…</string>
+    <string name="dashboard_search">Search</string>
+    <string name="dashboard_search_clear">Clear search</string>
+    <string name="dashboard_filter_all">All</string>
+    <string name="dashboard_empty_search_title">No entries match “%1$s”</string>
+    <string name="dashboard_empty_search_body">Try another word, or clear the search.</string>
+    <string name="dashboard_empty_search_action">Clear search</string>
+    <string name="dashboard_empty_category_title">No %1$s entries yet</string>
+    <string name="dashboard_empty_category_body">Add one, or show every entry.</string>
+    <string name="dashboard_empty_category_add">Add entry</string>
+    <string name="dashboard_empty_category_show_all">Show all</string>
+    <string name="dashboard_empty_vault_title">Your vault is empty</string>
+    <string name="dashboard_empty_vault_body">Add your first password, card or secure note. It stays encrypted on this device.</string>
+    <string name="dashboard_empty_vault_action">Add your first entry</string>
+    <string name="entry_saved">Vault entry saved</string>
+    <string name="entry_deleted">Entry deleted from the vault</string>
+    <string name="error_vault_locked">The vault is locked</string>
+    <string name="item_favorite">Favorite</string>
+
+    <!-- Entry editor -->
+    <string name="editor_title_new">New Secret Record</string>
+    <string name="editor_title_edit">Edit Secret Record</string>
+    <string name="editor_select_category">Select Category</string>
+    <string name="editor_field_title">Title / Service Name</string>
+    <string name="editor_field_title_hint">e.g. GitHub, Chase Bank, Server Key</string>
+    <string name="editor_error_title_required">A title is required</string>
+    <string name="editor_field_url">Website / App URL</string>
+    <string name="editor_field_url_hint">e.g. https://github.com</string>
+    <string name="editor_field_username">Username / Email</string>
+    <string name="editor_field_username_hint">user@example.com</string>
+    <string name="editor_field_cardholder">Cardholder Name</string>
+    <string name="editor_field_cardholder_hint">JOHN DOE</string>
+    <string name="editor_field_card_number">Card Number</string>
+    <string name="editor_field_card_number_hint">4532 •••• •••• 8892</string>
+    <string name="editor_field_expiry">Expiry Date</string>
+    <string name="editor_field_expiry_hint">MM/YY</string>
+    <string name="editor_field_cvv">CVV / CVC</string>
+    <string name="editor_field_cvv_hint">•••</string>
+    <string name="editor_field_tags">Tags / Context</string>
+    <string name="editor_field_tags_hint">e.g. Work, Production, Personal</string>
+    <string name="editor_secret_password">Password</string>
+    <string name="editor_secret_pin">PIN / Security Code</string>
+    <string name="editor_secret_text">Secret Text</string>
+    <string name="editor_secret_api_key">API Key / Token</string>
+    <string name="editor_generate">Generate</string>
+    <string name="editor_strength">%1$s (%2$d bits)</string>
+    <string name="editor_field_notes">Secure Notes</string>
+    <string name="editor_field_notes_hint">Additional encrypted notes…</string>
+    <string name="editor_save">Save Encrypted Record</string>
+    <string name="editor_delete_title">Delete this entry?</string>
+    <string name="editor_delete_message">“%1$s” will be removed from the vault. This cannot be undone.</string>
+
+    <!-- Password generator -->
+    <string name="generator_title">Generator Settings</string>
+    <string name="generator_no_character_set">Pick at least one character set</string>
+    <string name="generator_length">Length: %1$d characters</string>
+    <string name="generator_uppercase">Uppercase (A-Z)</string>
+    <string name="generator_lowercase">Lowercase (a-z)</string>
+    <string name="generator_digits">Digits (0-9)</string>
+    <string name="generator_symbols">Symbols (!@#$)</string>
+    <string name="generator_use_password">Use Password</string>
+
+    <!-- Backup -->
+    <string name="backup_title">Backup</string>
+    <string name="backup_export_title">Export</string>
+    <string name="backup_export_done">Backup saved. Entries in the file: %1$d.</string>
+    <string name="backup_export_warning">The backup password is not stored anywhere and cannot be recovered. If you forget it, the file cannot be decrypted.</string>
+    <string name="backup_password_label">Backup password</string>
+    <string name="backup_password_confirm_label">Repeat password</string>
+    <string name="backup_password_too_short">At least %1$d characters</string>
+    <string name="backup_password_mismatch">Passwords do not match</string>
+    <string name="backup_export_progress">Encrypting… Deriving the key from your password takes a few seconds.</string>
+    <string name="backup_export_action">Save backup</string>
+    <string name="backup_strength">Strength: %1$s</string>
+    <string name="backup_import_title">Import</string>
+    <string name="backup_import_intro">Choose a backup file (.obvb). The format version is checked before you enter the password.</string>
+    <string name="backup_import_choose_file">Choose file</string>
+    <string name="backup_import_checking_file">Checking the file…</string>
+    <string name="backup_import_decrypt">Decrypt</string>
+    <string name="backup_import_decrypting">Checking the password and decrypting… Deriving the key takes a few seconds.</string>
+    <string name="backup_import_writing">Writing to the vault…</string>
+    <string name="backup_import_choose_other_file">Choose another file</string>
+    <string name="backup_import_counts">Entries in the file: %1$d. Entries in the vault now: %2$d.</string>
+    <string name="backup_merge_title">Merge</string>
+    <string name="backup_merge_counts">Added: %1$d. Updated: %2$d. Unchanged: %3$d.</string>
+    <plurals name="backup_merge_kept_newer">
+        <item quantity="one">%d of the unchanged entries is newer in the vault than in the file. It stays as it is.</item>
+        <item quantity="other">%d of the unchanged entries are newer in the vault than in the file. They stay as they are.</item>
+    </plurals>
+    <string name="backup_merge_rule">When an entry is in both, the one changed later wins; if both were changed at the same moment, the vault\'s copy stays.</string>
+    <string name="backup_merge_action">Merge</string>
+    <string name="backup_replace_title">Replace</string>
+    <string name="backup_replace_summary">All current entries (%1$d) will be deleted and the entries from the file (%2$d) written.</string>
+    <string name="backup_replace_action">Replace all entries</string>
+    <string name="backup_import_done_replace">Import with replace finished. Deleted: %1$d, written from the file: %2$d.</string>
+    <string name="backup_import_done_merge">Import finished. Added: %1$d, updated: %2$d, unchanged: %3$d.</string>
+    <string name="error_wrong_password">Wrong password, or the file was changed after it was created.</string>
+    <string name="error_not_a_backup">This file is not an Obscura backup, or it is damaged.</string>
+    <string name="error_backup_vault_locked">The vault is locked. Unlock it and try again.</string>
+    <string name="error_backup_read_failed">Could not read the file.</string>
+    <string name="error_backup_write_failed">Could not write the backup file.</string>
+    <string name="error_unsupported_backup_version">This backup uses format version %1$d, but this app only reads version %2$d. Update the app to open this file.</string>
+
+    <!-- Backup reminder -->
+    <string name="backup_reminder_title">Make a backup</string>
+    <string name="backup_reminder_message">Make a backup. Your keys are tied to this device: if you lose the phone or uninstall the app, nothing can bring your data back.</string>
+    <string name="backup_reminder_action">Make a backup</string>
+
+    <!-- Autofill -->
+    <string name="autofill_default_entry_title">Obscura item</string>
+    <string name="autofill_prompt_title">Obscura Autofill</string>
+    <string name="autofill_prompt_subtitle">Authenticate to autofill %1$s</string>
+    <string name="autofill_heading">AUTOFILL VERIFICATION</string>
+    <string name="autofill_message">Verify your identity to release credentials for</string>
+    <string name="autofill_target_account">TARGET ACCOUNT</string>
+    <string name="autofill_authenticate">AUTHENTICATE &amp; AUTOFILL</string>
+    <string name="autofill_fingerprint">Fingerprint</string>
+    <string name="autofill_cancel">CANCEL</string>
+    <string name="autofill_masked_password" translatable="false">••••••••</string>
 </resources>

@@ -4,8 +4,11 @@ import android.app.Application
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.obscura.R
 import com.obscura.security.*
 import com.obscura.security.AuthRepository
+import com.obscura.ui.common.UiText
+import com.obscura.ui.common.uiText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +22,7 @@ data class LoginUiState(
     val confirmPin: String? = null,      // non-null while confirming during setup
     val isSetupMode: Boolean = false,
     val isBusy: Boolean = false,
-    val error: String? = null,
+    val error: UiText? = null,
     val attemptsRemaining: Int? = null,
     val lockedUntil: Long? = null,
     val canUseBiometrics: Boolean = false,
@@ -86,7 +89,7 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
                 it.copy(
                     isBusy = false,
                     pin = "",
-                    error = "Incorrect PIN",
+                    error = uiText(R.string.error_incorrect_pin),
                     attemptsRemaining = result.attemptsRemaining,
                     lockedUntil = repo.lockoutRemaining()
                 )
@@ -95,24 +98,24 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
                 it.copy(isBusy = false, pin = "", lockedUntil = result.until)
             }
             else -> _state.update {
-                it.copy(isBusy = false, pin = "", error = "Unable to unlock the vault")
+                it.copy(isBusy = false, pin = "", error = uiText(R.string.error_unlock_failed))
             }
         }
-        pinChars.fill('\u0000')
+        pinChars.fill(Char(0))
     }
 
     private fun finishSetup() = viewModelScope.launch {
         val s = _state.value
         if (s.pin != s.confirmPin) {
             _state.update {
-                it.copy(pin = "", confirmPin = null, error = "PINs don't match — start again")
+                it.copy(pin = "", confirmPin = null, error = uiText(R.string.error_pins_do_not_match))
             }
             return@launch
         }
         _state.update { it.copy(isBusy = true) }
         val pinChars = s.pin.toCharArray()
         val dek = repo.createVault(pinChars)
-        pinChars.fill('\u0000')
+        pinChars.fill(Char(0))
         VaultSession.unlock(getApplication<Application>(), dek)
         _state.update { it.copy(isBusy = false, pin = "", confirmPin = null, unlocked = true) }
     }
@@ -123,9 +126,9 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         val iv = repo.biometricIv() ?: return@launch
         val outcome = BiometricAuthenticator.authenticate(
             activity = activity,
-            title = "Unlock Obscura",
-            subtitle = "Confirm your identity to open the vault",
-            negativeButton = "Use PIN",
+            title = string(R.string.biometric_unlock_title),
+            subtitle = string(R.string.biometric_unlock_subtitle),
+            negativeButton = string(R.string.biometric_use_pin),
             cipherProvider = { KeystoreCrypto.bioDecryptCipher(iv) }
         )
         handleBiometricUnlock(outcome)
@@ -140,17 +143,21 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
                         _state.update { it.copy(unlocked = true) }
                     }
                     else -> _state.update {
-                        it.copy(canUseBiometrics = false, error = "Biometric unlock unavailable — use your PIN")
+                        it.copy(canUseBiometrics = false, error = uiText(R.string.error_biometric_unavailable))
                     }
                 }
             BiometricOutcome.KeyInvalidated -> {
                 repo.disableBiometrics()
                 _state.update {
-                    it.copy(canUseBiometrics = false, error = "Biometrics changed — enter your PIN to re-enable")
+                    it.copy(canUseBiometrics = false, error = uiText(R.string.error_biometrics_changed))
                 }
             }
             BiometricOutcome.UserCancelled -> Unit
-            is BiometricOutcome.Failed -> _state.update { it.copy(error = outcome.message) }
+            is BiometricOutcome.Failed -> _state.update {
+                // Codes from BiometricPrompt come with a message already localized by the system.
+                val error = if (outcome.code < 0) uiText(R.string.error_biometric_failed) else UiText.Platform(outcome.message)
+                it.copy(error = error)
+            }
         }
     }
 
@@ -160,9 +167,9 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         KeystoreCrypto.deleteBiometricKey()
         val outcome = BiometricAuthenticator.authenticate(
             activity = activity,
-            title = "Enable biometric unlock",
-            subtitle = "Obscura will store a protected copy of your vault key",
-            negativeButton = "Cancel",
+            title = string(R.string.biometric_enroll_title),
+            subtitle = string(R.string.biometric_enroll_subtitle),
+            negativeButton = string(R.string.action_cancel),
             cipherProvider = { KeystoreCrypto.bioEncryptCipher() }
         )
         if (outcome is BiometricOutcome.Success) {
@@ -172,4 +179,6 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun consumeUnlock() = _state.update { it.copy(unlocked = false) }
+
+    private fun string(id: Int): String = getApplication<Application>().getString(id)
 }

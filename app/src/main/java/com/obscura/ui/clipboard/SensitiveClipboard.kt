@@ -6,6 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import android.os.PersistableBundle
+import com.obscura.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -23,35 +24,35 @@ object SensitiveClipboard {
 
     const val CLEAR_AFTER_MS = 30_000L
 
-    private const val LABEL = "Obscura Vault"
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var pendingClear: Job? = null
 
     /** Call on the main thread. A new copy restarts the timer. */
     fun copy(context: Context, text: String) {
-        val clipboard = context.applicationContext.getSystemService(ClipboardManager::class.java) ?: return
-        clipboard.setPrimaryClip(sensitiveClip(text))
+        val appContext = context.applicationContext
+        val clipboard = appContext.getSystemService(ClipboardManager::class.java) ?: return
+        val label = appContext.getString(R.string.clipboard_label)
+        clipboard.setPrimaryClip(sensitiveClip(label, text))
 
         pendingClear?.cancel()
         pendingClear = scope.launch {
             delay(CLEAR_AFTER_MS)
-            clearIfStillOurs(clipboard)
+            clearIfStillOurs(clipboard, label)
         }
     }
 
-    fun sensitiveClip(text: String): ClipData =
-        ClipData.newPlainText(LABEL, text).apply {
+    fun sensitiveClip(label: String, text: String): ClipData =
+        ClipData.newPlainText(label, text).apply {
             description.extras = PersistableBundle().apply {
                 putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
             }
         }
 
-    private fun clearIfStillOurs(clipboard: ClipboardManager) {
+    private fun clearIfStillOurs(clipboard: ClipboardManager, label: String) {
         // In the background (Android 10+) the description can't be read and comes back null.
         // Clear anyway then: leaving a copied password around is worse than dropping a newer copy.
         val current = runCatching { clipboard.primaryClipDescription }.getOrNull()
-        if (current != null && current.label?.toString() != LABEL) return
+        if (current != null && current.label?.toString() != label) return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             clipboard.clearPrimaryClip()
