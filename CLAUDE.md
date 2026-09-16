@@ -44,6 +44,46 @@ Keystore и без DEK. Это выглядит непоследовательн
 Заголовок открытый и передаётся в GCM как AAD. Три разных исключения:
 `UnsupportedBackupVersionException`, `BackupFormatException`, `SecurityException`.
 
+## Манифест
+
+### Ориентация
+
+Портретная ориентация фиксирована для всех Activity
+(`android:screenOrientation="portrait"`): в ландшафте клавиатура PIN не
+помещается на экран. Новые Activity обязаны объявлять portrait — это
+проверяет инструментальный тест `everyActivityIsPortraitOnly`.
+
+На API 26 полупрозрачное окно с фиксированной ориентацией падает в
+`Activity.onCreate` с `IllegalStateException: Only fullscreen opaque
+activities can request orientation` (при targetSdk > 26; в 8.1 проверку
+убрали). Поэтому `AutofillBiometricAuthActivity` на API 26 делается
+непрозрачной через `values-v26` / `values-v27`. Проверено на эмуляторе
+API 26 тестом `AutofillBiometricAuthActivityTest`, включая контрольный
+прогон: без этих ресурсов тест падает именно с этим исключением.
+
+Android 16 (targetSdk 36) на больших экранах игнорирует `screenOrientation`
+(ChangeId `UNIVERSAL_RESIZABLE_BY_DEFAULT`; порог ≥ 600dp — по документации).
+На планшетах фиксация не работает — поведение экрана входа в ландшафте там
+не проверено.
+
+### Разрешения в APK
+
+Фактический список (`aapt2 dump permissions` release APK):
+
+- `USE_BIOMETRIC`
+- `USE_FINGERPRINT` (maxSdkVersion 28)
+- `PROVIDE_CREDENTIALS`
+- `com.obscura.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` от androidx.core —
+  signature-уровня, объявлено и запрошено (две записи).
+
+`INTERNET` нет и не должно появиться: приложение офлайновое. После
+изменения зависимостей проверяй список заново.
+
+AutofillService в приложении пока нет, `AutofillBiometricAuthActivity`
+ниоткуда не запускается. Когда сервис появится, он защищается атрибутом
+`android:permission="android.permission.BIND_AUTOFILL_SERVICE"` у `<service>`,
+это не `uses-permission`.
+
 ## Правила для тебя
 
 - Перед изменением криптографии сверяй примитивы с внешним эталоном
