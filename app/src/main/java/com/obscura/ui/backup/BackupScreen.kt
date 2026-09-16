@@ -19,6 +19,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.obscura.data.backup.ImportMode
+import com.obscura.data.backup.ImportPreview
+import com.obscura.data.backup.ImportResult
 import com.obscura.security.PasswordGenerator
 
 @Composable
@@ -165,36 +167,12 @@ private fun ImportSection(
 
             ImportPhase.Decrypting -> BusyRow("Проверка пароля и расшифровка… Вывод ключа занимает несколько секунд.")
 
-            is ImportPhase.ChooseMode -> {
-                Text("В резервной копии записей: ${phase.backupEntryCount}. Сейчас в хранилище: ${phase.existingEntryCount}.")
-                Text(
-                    "Объединить — текущие записи останутся; записи с тем же идентификатором будут заменены версией из файла.",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    "Заменить — все текущие записи будут удалены, останутся только записи из файла.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-                Button(onClick = { onModeChosen(ImportMode.MERGE) }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Объединить")
-                }
-                Button(
-                    onClick = { onModeChosen(ImportMode.REPLACE) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Заменить все записи") }
-                TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) { Text("Отмена") }
-            }
+            is ImportPhase.ChooseMode -> ModeChoice(phase.preview, onModeChosen, onCancel)
 
             ImportPhase.Writing -> BusyRow("Запись в хранилище…")
 
             is ImportPhase.Done -> {
-                val how = if (phase.mode == ImportMode.REPLACE) "с заменой" else "с объединением"
-                Text("Импорт завершён $how. Записей из файла: ${phase.entryCount}.")
+                Text(importResultText(phase.result))
                 Button(onClick = onAcknowledge, modifier = Modifier.fillMaxWidth()) { Text("Готово") }
             }
 
@@ -207,6 +185,53 @@ private fun ImportSection(
             }
         }
     }
+}
+
+/** The summary is shown before anything is written; each button states what it will do. */
+@Composable
+private fun ModeChoice(preview: ImportPreview, onModeChosen: (ImportMode) -> Unit, onCancel: () -> Unit) {
+    val merge = preview.merge
+    Text("В файле записей: ${preview.backupEntryCount}. Сейчас в хранилище: ${preview.existingEntryCount}.")
+
+    Text("Объединить", fontWeight = FontWeight.SemiBold)
+    Text("Добавится: ${merge.added}. Обновится: ${merge.updated}. Не изменится: ${merge.unchanged}.")
+    if (merge.keptNewer > 0) {
+        Text(
+            "Из неизменённых ${merge.keptNewer} — записи, которые в хранилище новее, чем в файле. Они останутся как есть.",
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+    Text(
+        "При совпадении остаётся запись, изменённая позже; при одинаковом времени изменения — запись из хранилища.",
+        style = MaterialTheme.typography.bodySmall
+    )
+    Button(onClick = { onModeChosen(ImportMode.MERGE) }, modifier = Modifier.fillMaxWidth()) {
+        Text("Объединить")
+    }
+
+    Text("Заменить", fontWeight = FontWeight.SemiBold)
+    Text(
+        "Будут удалены все текущие записи (${preview.existingEntryCount}) и записаны записи из файла (${preview.backupEntryCount}).",
+        color = MaterialTheme.colorScheme.error,
+        style = MaterialTheme.typography.bodySmall
+    )
+    Button(
+        onClick = { onModeChosen(ImportMode.REPLACE) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) { Text("Заменить все записи") }
+
+    TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) { Text("Отмена") }
+}
+
+private fun importResultText(result: ImportResult): String = when (result.mode) {
+    ImportMode.REPLACE ->
+        "Импорт с заменой завершён. Удалено записей: ${result.removed}, записано из файла: ${result.added}."
+    ImportMode.MERGE ->
+        "Импорт завершён. Добавлено: ${result.added}, обновлено: ${result.updated}, без изменений: ${result.unchanged}."
 }
 
 @Composable

@@ -69,7 +69,7 @@ class BackupFormatTest {
         context.deleteDatabase(DATABASE_NAME)
         VaultSession.unlock(context, dek)
 
-        assertEquals(1, BackupManager(context).importVaultFromFile(uri, password.toCharArray()).getOrThrow())
+        assertEquals(1, BackupManager(context).importVaultFromFile(uri, password.toCharArray()).getOrThrow().added)
         assertEquals("hunter2", VaultRepositoryImpl().getEntryById(entry.id)?.secretValue)
     }
 

@@ -9,6 +9,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.obscura.data.backup.BackupManager
 import com.obscura.data.backup.ImportMode
+import com.obscura.data.backup.ImportPreview
+import com.obscura.data.backup.ImportResult
+import com.obscura.data.backup.MergeCounts
 import com.obscura.data.local.VaultEntity
 import com.obscura.security.UnsupportedBackupVersionException
 import com.obscura.security.VaultLockedException
@@ -96,20 +99,60 @@ class BackupFlowTest {
         app.deleteDatabase(DATABASE_NAME)
         VaultSession.unlock(app, dek)
 
-        viewModel.onImportFileChosen(uri)
-        awaitImport(viewModel) { it is ImportPhase.PasswordRequired || it is ImportPhase.Failed }
-            .let { assertEquals(ImportPhase.PasswordRequired(), it) }
-        viewModel.onImportPasswordChanged(PASSWORD)
-        viewModel.onImportDecrypt()
-        val choose = awaitImport(viewModel) { it is ImportPhase.ChooseMode || it is ImportPhase.Failed || it is ImportPhase.PasswordRequired }
-        assertEquals(ImportPhase.ChooseMode(backupEntryCount = 2, existingEntryCount = 0), choose)
+        decryptThroughViewModel(viewModel, PASSWORD)
+        val choose = awaitImport(viewModel) { it is ImportPhase.ChooseMode || it is ImportPhase.Failed }
+        assertEquals(
+            ImportPhase.ChooseMode(ImportPreview(2, 0, MergeCounts(added = 2, updated = 0, unchanged = 0, keptNewer = 0))),
+            choose
+        )
 
         viewModel.onImportModeChosen(ImportMode.REPLACE)
         val done = awaitImport(viewModel) { it is ImportPhase.Done || it is ImportPhase.Failed }
-        assertEquals(ImportPhase.Done(2, ImportMode.REPLACE), done)
+        assertEquals(ImportPhase.Done(ImportResult(ImportMode.REPLACE, added = 2, updated = 0, unchanged = 0, removed = 0)), done)
 
         // lastAccessedAt is not part of the backup format.
         assertEquals(entries.map { it.copy(lastAccessedAt = 0) }, vaultSnapshot().map { it.copy(lastAccessedAt = 0) })
+    }
+
+    @Test
+    fun mergeKeepsNewerVaultEntriesAndShowsSummaryBeforeWriting() = runBlocking {
+        val inFile = listOf(
+            note("a", "A from file", updatedAt = 100), // the vault has a newer copy
+            note("b", "B from file", updatedAt = 300), // the file has the newer copy
+            note("d", "D from file", updatedAt = 100), // not in the vault
+            note("e", "E", updatedAt = 100) // same updatedAt on both sides
+        )
+        val inVault = listOf(
+            note("a", "A in vault", updatedAt = 200),
+            note("b", "B in vault", updatedAt = 100),
+            note("c", "C only in vault", updatedAt = 100),
+            note("e", "E", updatedAt = 100)
+        )
+        unlockWith(inFile)
+        BackupManager(app).exportVaultToFile(uri, PASSWORD.toCharArray()).getOrThrow()
+        VaultSession.runInTransaction {
+            val dao = VaultSession.requireDatabase().vaultDao()
+            dao.clearAll()
+            dao.insertAll(inVault)
+        }
+
+        val viewModel = newViewModel()
+        decryptThroughViewModel(viewModel, PASSWORD)
+        val choose = awaitImport(viewModel) { it is ImportPhase.ChooseMode || it is ImportPhase.Failed }
+        assertEquals(
+            ImportPhase.ChooseMode(ImportPreview(4, 4, MergeCounts(added = 1, updated = 1, unchanged = 2, keptNewer = 1))),
+            choose
+        )
+        assertEquals("nothing is written before a mode is chosen", inVault, vaultSnapshot())
+
+        viewModel.onImportModeChosen(ImportMode.MERGE)
+        val done = awaitImport(viewModel) { it is ImportPhase.Done || it is ImportPhase.Failed }
+        assertEquals(ImportPhase.Done(ImportResult(ImportMode.MERGE, added = 1, updated = 1, unchanged = 2, removed = 0)), done)
+
+        assertEquals(
+            mapOf("a" to "A in vault", "b" to "B from file", "c" to "C only in vault", "d" to "D from file", "e" to "E"),
+            vaultSnapshot().associate { it.id to it.title }
+        )
     }
 
     @Test
@@ -173,6 +216,22 @@ class BackupFlowTest {
 
         assertTrue("expected VaultLockedException, got ${result.exceptionOrNull()}", result.exceptionOrNull() is VaultLockedException)
         assertFalse("backup file must not exist", backupFile.exists())
+    }
+
+    private fun note(id: String, title: String, updatedAt: Long) =
+        VaultEntity(
+            id = id, title = title, category = "secure_note", secretValue = "secret-$id",
+            createdAt = 1, updatedAt = updatedAt, lastAccessedAt = 1
+        )
+
+    private suspend fun decryptThroughViewModel(viewModel: BackupViewModel, password: String) {
+        viewModel.onImportFileChosen(uri)
+        assertEquals(
+            ImportPhase.PasswordRequired(),
+            awaitImport(viewModel) { it is ImportPhase.PasswordRequired || it is ImportPhase.Failed }
+        )
+        viewModel.onImportPasswordChanged(password)
+        viewModel.onImportDecrypt()
     }
 
     private suspend fun unlockWith(initial: List<VaultEntity>) {

@@ -13,7 +13,6 @@ import com.obscura.security.VaultSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -41,7 +40,10 @@ enum class ImportMode {
     /** Delete every existing entry, then insert the entries from the backup. */
     REPLACE,
 
-    /** Keep existing entries; an entry with the same id is overwritten by the copy from the backup. */
+    /**
+     * Add ids the vault doesn't have; for an id it has, keep whichever copy has the later
+     * updatedAt (the vault's copy on a tie). See [planMerge].
+     */
     MERGE
 }
 
@@ -105,26 +107,59 @@ class BackupManager(private val context: Context) {
         }
     }
 
-    /** Writes [entries] in one transaction: a failure or a lock midway rolls the whole import back. */
-    suspend fun restore(entries: List<VaultEntity>, mode: ImportMode): Result<Int> = resultOf {
-        VaultSession.runInTransaction {
-            val dao = VaultSession.requireDatabase().vaultDao()
-            if (mode == ImportMode.REPLACE) dao.clearAll()
-            dao.insertAll(entries)
-            entries.size
+    /** What each import mode would do with [entries] against the vault as it is now; writes nothing. */
+    suspend fun previewImport(entries: List<VaultEntity>): Result<ImportPreview> = resultOf {
+        VaultSession.runInSession {
+            val existing = VaultSession.requireDatabase().vaultDao().getEntryVersions()
+                .associate { it.id to it.updatedAt }
+            ImportPreview(
+                backupEntryCount = newestPerId(entries).size,
+                existingEntryCount = existing.size,
+                merge = planMerge(existing, entries).counts
+            )
         }
     }
 
-    /** Number of entries currently in the vault. */
-    suspend fun countEntries(): Result<Int> = resultOf {
-        VaultSession.runInSession { VaultSession.requireDatabase().vaultDao().getEntriesCount().first() }
+    /**
+     * Writes [entries] in one transaction: a failure or a lock midway rolls the whole import back.
+     * MERGE plans again inside the transaction, so an entry edited after [previewImport] is still
+     * never overwritten by an older copy from the file.
+     */
+    suspend fun restore(entries: List<VaultEntity>, mode: ImportMode): Result<ImportResult> = resultOf {
+        VaultSession.runInTransaction {
+            val dao = VaultSession.requireDatabase().vaultDao()
+            when (mode) {
+                ImportMode.REPLACE -> {
+                    val removed = dao.getEntryVersions().size
+                    val incoming = newestPerId(entries)
+                    dao.clearAll()
+                    dao.insertAll(incoming)
+                    ImportResult(mode, added = incoming.size, updated = 0, unchanged = 0, removed = removed)
+                }
+                ImportMode.MERGE -> {
+                    val plan = planMerge(dao.getEntryVersions().associate { it.id to it.updatedAt }, entries)
+                    dao.insertAll(plan.toAdd + plan.toUpdate)
+                    ImportResult(
+                        mode,
+                        added = plan.toAdd.size,
+                        updated = plan.toUpdate.size,
+                        unchanged = plan.unchangedCount,
+                        removed = 0
+                    )
+                }
+            }
+        }
     }
 
     /**
      * Decrypts and restores in one call.
      * Fails with UnsupportedBackupVersionException for backups of another format version.
      */
-    suspend fun importVaultFromFile(uri: Uri, password: CharArray, mode: ImportMode = ImportMode.MERGE): Result<Int> =
+    suspend fun importVaultFromFile(
+        uri: Uri,
+        password: CharArray,
+        mode: ImportMode = ImportMode.MERGE
+    ): Result<ImportResult> =
         decryptBackup(uri, password).fold(
             onSuccess = { entries -> restore(entries, mode) },
             onFailure = { Result.failure(it) }

@@ -42,6 +42,7 @@ class FakeVaultDao(
         entriesFlow.value = entriesFlow.value.filterNot { it.id == entry.id } + entry
     }
 
+    override suspend fun getEntryVersions(): List<EntryVersion> = unused()
     override suspend fun getEntryById(id: String): VaultEntity? = unused()
     override suspend fun updateEntry(entry: VaultEntity) = unused()
     override suspend fun deleteEntry(entry: VaultEntity) = unused()

@@ -61,6 +61,10 @@ interface VaultDao {
     @Query("SELECT * FROM vault_entries")
     suspend fun getAllEntriesDirect(): List<VaultEntity>
 
+    /** Ids and update times only: enough to plan a merge without loading any secrets. */
+    @Query("SELECT id, updatedAt FROM vault_entries")
+    suspend fun getEntryVersions(): List<EntryVersion>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<VaultEntity>)
 }
