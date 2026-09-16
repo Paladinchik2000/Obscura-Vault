@@ -59,10 +59,7 @@ class VaultEntryFlowTest {
     @Test
     fun createFindEditThenLockClearsList() = runBlocking {
         VaultSession.unlock(app, dek)
-        val viewModel = ViewModelProvider(
-            store,
-            viewModelFactory { initializer { VaultViewModel(VaultRepositoryImpl(), RecordingReminderStore()) } }
-        )[VaultViewModel::class.java]
+        val viewModel = newViewModel()
 
         // Create
         viewModel.saveEntry(
@@ -80,11 +77,13 @@ class VaultEntryFlowTest {
         val found = withTimeout(TIMEOUT_MS) { viewModel.vaultEntries.first { list -> list.map { it.title } == listOf("GitHub") } }
         assertEquals(created.id, found.single().id)
 
-        // Edit
+        // Edit through the editor form
         viewModel.startEditing(created.id)
         val editing = withTimeout(TIMEOUT_MS) { viewModel.editor.first { it is EditorState.Ready } } as EditorState.Ready
         assertEquals(created, editing.entry)
-        viewModel.saveEntry(editing.entry!!.copy(title = "GitHub (work)"))
+        assertEquals(EntryForm.from(created), editing.form)
+        viewModel.updateForm { it.copy(title = "GitHub (work)") }
+        assertTrue(viewModel.saveEditor())
         viewModel.finishEditing()
 
         val edited = withTimeout(TIMEOUT_MS) {
@@ -100,4 +99,33 @@ class VaultEntryFlowTest {
         withTimeout(TIMEOUT_MS) { viewModel.uiState.first { it == VaultUiState() } }
         assertEquals(EditorState.Idle, viewModel.editor.value)
     }
+
+    @Test
+    fun halfFilledFormSurvivesReopeningButNotLock() = runBlocking {
+        VaultSession.unlock(app, dek)
+        val viewModel = newViewModel()
+
+        viewModel.startEditing(null)
+        viewModel.updateForm { it.copy(title = "Half-typed", secretValue = "not saved yet", isSecretVisible = true) }
+
+        // What a configuration change does: the recreated screen asks for the same editor again.
+        viewModel.startEditing(null)
+        val kept = (viewModel.editor.value as EditorState.Ready).form
+        assertEquals("Half-typed", kept.title)
+        assertEquals("not saved yet", kept.secretValue)
+        assertTrue(kept.isSecretVisible)
+
+        VaultSession.lock()
+        withTimeout(TIMEOUT_MS) { viewModel.editor.first { it == EditorState.Idle } }
+
+        VaultSession.unlock(app, dek)
+        viewModel.startEditing(null)
+        assertEquals(EntryForm(), (viewModel.editor.value as EditorState.Ready).form)
+    }
+
+    private fun newViewModel(): VaultViewModel =
+        ViewModelProvider(
+            store,
+            viewModelFactory { initializer { VaultViewModel(VaultRepositoryImpl(), RecordingReminderStore()) } }
+        )[VaultViewModel::class.java]
 }

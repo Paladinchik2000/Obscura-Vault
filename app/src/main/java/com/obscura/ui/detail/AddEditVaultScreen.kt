@@ -45,10 +45,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,7 +62,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.obscura.data.local.VaultEntity
 import com.obscura.data.model.VaultCategory
 import com.obscura.security.PasswordGenerator
 import com.obscura.ui.clipboard.SensitiveClipboard
@@ -76,6 +75,7 @@ import com.obscura.ui.theme.SecurityYellow
 import com.obscura.ui.theme.TextMuted
 import com.obscura.ui.theme.TextPrimary
 import com.obscura.ui.theme.TextSecondary
+import com.obscura.ui.viewmodel.EntryForm
 import kotlinx.coroutines.launch
 
 object EntryTags {
@@ -85,28 +85,23 @@ object EntryTags {
     const val SAVE = "entry_save"
 }
 
+/**
+ * Stateless editor: the form itself lives in VaultViewModel, so typed values survive rotation
+ * without going into saved instance state. Only non-secret dialog flags are saved here.
+ */
 @Composable
 fun AddEditVaultScreen(
-    initialItem: VaultEntity?,
-    onSaveClick: (VaultEntity) -> Unit,
-    onDeleteClick: ((String) -> Unit)?,
+    isNewEntry: Boolean,
+    form: EntryForm,
+    onFormChange: ((EntryForm) -> EntryForm) -> Unit,
+    onSaveClick: () -> Unit,
+    onDeleteClick: (() -> Unit)?,
     onBackClick: () -> Unit
 ) {
-    var category by remember { mutableStateOf(initialItem?.getCategoryEnum() ?: VaultCategory.ACCOUNT) }
-    var title by remember { mutableStateOf(initialItem?.title ?: "") }
-    var usernameOrCardholder by remember { mutableStateOf(initialItem?.usernameOrCardholder ?: "") }
-    var secretValue by remember { mutableStateOf(initialItem?.secretValue ?: "") }
-    var urlOrCardNumber by remember { mutableStateOf(initialItem?.urlOrCardNumber ?: "") }
-    var notesOrCvv by remember { mutableStateOf(initialItem?.notesOrCvv ?: "") }
-    var expiryDate by remember { mutableStateOf(initialItem?.expiryDate ?: "") }
-    var tags by remember { mutableStateOf(initialItem?.tags ?: "") }
+    var showGeneratorDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
 
-    var isSecretVisible by remember { mutableStateOf(false) }
-    var showGeneratorDialog by remember { mutableStateOf(false) }
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
-    var titleError by remember { mutableStateOf(false) }
-
-    val strength = remember(secretValue) { PasswordGenerator.evaluateStrength(secretValue) }
+    val strength = remember(form.secretValue) { PasswordGenerator.evaluateStrength(form.secretValue) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -133,14 +128,14 @@ fun AddEditVaultScreen(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (initialItem == null) "New Secret Record" else "Edit Secret Record",
+                        text = if (isNewEntry) "New Secret Record" else "Edit Secret Record",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                 }
 
-                if (initialItem != null && onDeleteClick != null) {
+                if (onDeleteClick != null) {
                     IconButton(onClick = { showDeleteConfirmation = true }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -172,7 +167,7 @@ fun AddEditVaultScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 VaultCategory.entries.forEach { cat ->
-                    val isSelected = category == cat
+                    val isSelected = form.category == cat
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -183,7 +178,7 @@ fun AddEditVaultScreen(
                                 if (isSelected) CrimsonPrimary else CardBorder,
                                 RoundedCornerShape(12.dp)
                             )
-                            .clickable { category = cat }
+                            .clickable { onFormChange { it.copy(category = cat) } }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -203,30 +198,29 @@ fun AddEditVaultScreen(
             // Dynamic Form Fields
             CustomInputField(
                 label = "Title / Service Name",
-                value = title,
-                onValueChange = {
-                    title = it
-                    if (it.isNotBlank()) titleError = false
+                value = form.title,
+                onValueChange = { value ->
+                    onFormChange { it.copy(title = value, titleError = it.titleError && value.isBlank()) }
                 },
                 placeholder = "e.g. GitHub, Chase Bank, Server Key",
-                isError = titleError,
+                isError = form.titleError,
                 errorText = "A title is required",
                 testTag = EntryTags.TITLE
             )
 
-            when (category) {
+            when (form.category) {
                 VaultCategory.ACCOUNT -> {
                     CustomInputField(
                         label = "Website / App URL",
-                        value = urlOrCardNumber,
-                        onValueChange = { urlOrCardNumber = it },
+                        value = form.urlOrCardNumber,
+                        onValueChange = { value -> onFormChange { it.copy(urlOrCardNumber = value) } },
                         placeholder = "e.g. https://github.com"
                     )
 
                     CustomInputField(
                         label = "Username / Email",
-                        value = usernameOrCardholder,
-                        onValueChange = { usernameOrCardholder = it },
+                        value = form.usernameOrCardholder,
+                        onValueChange = { value -> onFormChange { it.copy(usernameOrCardholder = value) } },
                         placeholder = "user@example.com",
                         testTag = EntryTags.USERNAME
                     )
@@ -235,16 +229,16 @@ fun AddEditVaultScreen(
                 VaultCategory.BANK_CARD -> {
                     CustomInputField(
                         label = "Cardholder Name",
-                        value = usernameOrCardholder,
-                        onValueChange = { usernameOrCardholder = it },
+                        value = form.usernameOrCardholder,
+                        onValueChange = { value -> onFormChange { it.copy(usernameOrCardholder = value) } },
                         placeholder = "JOHN DOE",
                         testTag = EntryTags.USERNAME
                     )
 
                     CustomInputField(
                         label = "Card Number",
-                        value = urlOrCardNumber,
-                        onValueChange = { urlOrCardNumber = it },
+                        value = form.urlOrCardNumber,
+                        onValueChange = { value -> onFormChange { it.copy(urlOrCardNumber = value) } },
                         placeholder = "4532 •••• •••• 8892"
                     )
 
@@ -252,16 +246,16 @@ fun AddEditVaultScreen(
                         Box(modifier = Modifier.weight(1f)) {
                             CustomInputField(
                                 label = "Expiry Date",
-                                value = expiryDate,
-                                onValueChange = { expiryDate = it },
+                                value = form.expiryDate,
+                                onValueChange = { value -> onFormChange { it.copy(expiryDate = value) } },
                                 placeholder = "MM/YY"
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             CustomInputField(
                                 label = "CVV / CVC",
-                                value = notesOrCvv,
-                                onValueChange = { notesOrCvv = it },
+                                value = form.notesOrCvv,
+                                onValueChange = { value -> onFormChange { it.copy(notesOrCvv = value) } },
                                 placeholder = "•••"
                             )
                         }
@@ -271,8 +265,8 @@ fun AddEditVaultScreen(
                 VaultCategory.SECURE_NOTE, VaultCategory.API_KEY -> {
                     CustomInputField(
                         label = "Tags / Context",
-                        value = tags,
-                        onValueChange = { tags = it },
+                        value = form.tags,
+                        onValueChange = { value -> onFormChange { it.copy(tags = value) } },
                         placeholder = "e.g. Work, Production, Personal"
                     )
                 }
@@ -286,7 +280,7 @@ fun AddEditVaultScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = when (category) {
+                        text = when (form.category) {
                             VaultCategory.ACCOUNT -> "Password"
                             VaultCategory.BANK_CARD -> "PIN / Security Code"
                             VaultCategory.SECURE_NOTE -> "Secret Text"
@@ -308,9 +302,9 @@ fun AddEditVaultScreen(
                             Text("Generate", color = CrimsonPrimary)
                         }
 
-                        if (secretValue.isNotEmpty()) {
+                        if (form.secretValue.isNotEmpty()) {
                             IconButton(onClick = {
-                                SensitiveClipboard.copy(context, secretValue)
+                                SensitiveClipboard.copy(context, form.secretValue)
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Copied. The clipboard is cleared in 30 seconds.")
                                 }
@@ -327,17 +321,17 @@ fun AddEditVaultScreen(
                 }
 
                 OutlinedTextField(
-                    value = secretValue,
-                    onValueChange = { secretValue = it },
+                    value = form.secretValue,
+                    onValueChange = { value -> onFormChange { it.copy(secretValue = value) } },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(EntryTags.SECRET),
-                    visualTransformation = if (isSecretVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    visualTransformation = if (form.isSecretVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton(onClick = { isSecretVisible = !isSecretVisible }) {
+                        IconButton(onClick = { onFormChange { it.copy(isSecretVisible = !it.isSecretVisible) } }) {
                             Icon(
-                                imageVector = if (isSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (isSecretVisible) "Hide secret" else "Show secret",
+                                imageVector = if (form.isSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (form.isSecretVisible) "Hide secret" else "Show secret",
                                 tint = TextSecondary
                             )
                         }
@@ -354,7 +348,7 @@ fun AddEditVaultScreen(
                 )
 
                 // Password Strength Bar
-                if (secretValue.isNotEmpty()) {
+                if (form.secretValue.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     val scoreColor = when {
                         strength.score >= 80 -> SecurityGreen
@@ -389,11 +383,11 @@ fun AddEditVaultScreen(
                 }
             }
 
-            if (category == VaultCategory.SECURE_NOTE) {
+            if (form.category == VaultCategory.SECURE_NOTE) {
                 CustomInputField(
                     label = "Secure Notes",
-                    value = notesOrCvv,
-                    onValueChange = { notesOrCvv = it },
+                    value = form.notesOrCvv,
+                    onValueChange = { value -> onFormChange { it.copy(notesOrCvv = value) } },
                     placeholder = "Additional encrypted notes...",
                     singleLine = false
                 )
@@ -403,28 +397,7 @@ fun AddEditVaultScreen(
 
             // Save Action Button
             Button(
-                onClick = {
-                    if (title.isBlank()) {
-                        titleError = true
-                    } else {
-                        // Edit the loaded entry rather than building a new one, so id, createdAt,
-                        // favourite flag and the previous updatedAt survive; the repository then
-                        // moves updatedAt forward.
-                        val base = initialItem ?: VaultEntity(id = "", title = "", category = category.id)
-                        onSaveClick(
-                            base.copy(
-                                title = title.trim(),
-                                category = category.id,
-                                usernameOrCardholder = usernameOrCardholder,
-                                secretValue = secretValue,
-                                urlOrCardNumber = urlOrCardNumber,
-                                notesOrCvv = notesOrCvv,
-                                expiryDate = expiryDate,
-                                tags = tags
-                            )
-                        )
-                    }
-                },
+                onClick = onSaveClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
@@ -449,20 +422,20 @@ fun AddEditVaultScreen(
         PasswordGeneratorDialog(
             onDismiss = { showGeneratorDialog = false },
             onPasswordGenerated = { generated ->
-                secretValue = generated
+                onFormChange { it.copy(secretValue = generated) }
                 showGeneratorDialog = false
             }
         )
     }
 
-    if (showDeleteConfirmation && initialItem != null && onDeleteClick != null) {
+    if (showDeleteConfirmation && onDeleteClick != null) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
             containerColor = CardBackground,
             title = { Text("Delete this entry?", color = TextPrimary, fontWeight = FontWeight.Bold) },
             text = {
                 Text(
-                    "“${initialItem.title}” will be removed from the vault. This cannot be undone.",
+                    "“${form.title}” will be removed from the vault. This cannot be undone.",
                     color = TextSecondary
                 )
             },
@@ -470,7 +443,7 @@ fun AddEditVaultScreen(
                 Button(
                     onClick = {
                         showDeleteConfirmation = false
-                        onDeleteClick(initialItem.id)
+                        onDeleteClick()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = SecurityRed)
                 ) {
@@ -539,11 +512,11 @@ fun PasswordGeneratorDialog(
     onDismiss: () -> Unit,
     onPasswordGenerated: (String) -> Unit
 ) {
-    var length by remember { mutableFloatStateOf(16f) }
-    var useUpper by remember { mutableStateOf(true) }
-    var useLower by remember { mutableStateOf(true) }
-    var useDigits by remember { mutableStateOf(true) }
-    var useSymbols by remember { mutableStateOf(true) }
+    var length by rememberSaveable { mutableStateOf(16f) }
+    var useUpper by rememberSaveable { mutableStateOf(true) }
+    var useLower by rememberSaveable { mutableStateOf(true) }
+    var useDigits by rememberSaveable { mutableStateOf(true) }
+    var useSymbols by rememberSaveable { mutableStateOf(true) }
 
     val previewPassword by remember(length, useUpper, useLower, useDigits, useSymbols) {
         mutableStateOf(

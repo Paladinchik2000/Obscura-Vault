@@ -2,10 +2,15 @@ package com.obscura.nav
 
 import android.content.ClipDescription
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.os.SystemClock
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -28,18 +33,20 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** The real app from a fresh install: PIN setup, dashboard, editor, reminder, search and lock. */
+/** The real app from a fresh install: PIN setup, dashboard, editor, reminder, search, rotation and lock. */
 @RunWith(AndroidJUnit4::class)
 class VaultNavigationTest {
 
     private companion object {
         const val DATABASE_NAME = "obscura_encrypted_vault.db" // must match VaultDatabase
+        const val PIN = "123456"
         const val TIMEOUT_MS = 20_000L
         val PREFERENCE_FILES = listOf("obscura_auth", "obscura_ui")
     }
@@ -59,13 +66,9 @@ class VaultNavigationTest {
     fun createFindEditThenLockReturnsToLoginWithClearedBackStack() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         try {
-            waitForText("Create a PIN")
-            enterPin("123456")
-            waitForText("Confirm your PIN")
-            enterPin("123456")
+            createVault()
 
             // Empty vault: a clear call to action instead of an empty list.
-            waitForText("Your vault is empty")
             compose.onNodeWithText("Add your first entry").performClick()
 
             waitForTag(EntryTags.TITLE)
@@ -124,6 +127,49 @@ class VaultNavigationTest {
     }
 
     @Test
+    fun halfFilledFormSurvivesRotationButNotLock() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        try {
+            createVault()
+            compose.onNodeWithText("Add your first entry").performClick()
+
+            waitForTag(EntryTags.TITLE)
+            compose.onNodeWithTag(EntryTags.TITLE).performTextInput("Half-typed title")
+            compose.onNodeWithTag(EntryTags.SECRET).performTextInput("half-typed-secret")
+            compose.onNodeWithContentDescription("Show secret").performClick()
+
+            recreateByRotating(scenario, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+
+            waitForTag(EntryTags.TITLE)
+            compose.onNodeWithTag(EntryTags.TITLE).assert(hasText("Half-typed title"))
+            compose.onNodeWithTag(EntryTags.SECRET).performScrollTo().assert(hasText("half-typed-secret"))
+            assertTrue(
+                "secret visibility is part of the form state",
+                compose.onAllNodesWithContentDescription("Hide secret").fetchSemanticsNodes().isNotEmpty()
+            )
+
+            // And back: a second recreation keeps it too. Portrait also keeps the PIN keypad on screen.
+            recreateByRotating(scenario, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+            waitForTag(EntryTags.TITLE)
+            compose.onNodeWithTag(EntryTags.TITLE).assert(hasText("Half-typed title"))
+
+            // Lock from the editor: back to login; after unlocking, a new entry starts empty.
+            VaultSession.requestLock()
+            waitForText("Enter your PIN to unlock")
+            assertTrue(compose.onAllNodesWithText("Half-typed title").fetchSemanticsNodes().isEmpty())
+
+            enterPin(PIN)
+            waitForText("Your vault is empty")
+            compose.onNodeWithText("Add your first entry").performClick()
+            waitForTag(EntryTags.TITLE)
+            compose.onNodeWithTag(EntryTags.TITLE).assert(hasText("Half-typed title").not())
+            compose.onNodeWithTag(EntryTags.SECRET).assert(hasText("half-typed-secret").not())
+        } finally {
+            scenario.close()
+        }
+    }
+
+    @Test
     fun copiedSecretsAreMarkedSensitive() {
         val clip = SensitiveClipboard.sensitiveClip("s3cret")
 
@@ -131,8 +177,33 @@ class VaultNavigationTest {
         assertEquals(30_000L, SensitiveClipboard.CLEAR_AFTER_MS)
     }
 
+    /** Fresh install: create the PIN and wait for the empty dashboard. */
+    private fun createVault() {
+        waitForText("Create a PIN")
+        enterPin(PIN)
+        waitForText("Confirm your PIN")
+        enterPin(PIN)
+        waitForText("Your vault is empty")
+    }
+
     private fun enterPin(pin: String) {
         pin.forEach { digit -> compose.onNodeWithText(digit.toString()).performClick() }
+    }
+
+    /** Changes orientation and waits until the activity has actually been recreated. */
+    private fun recreateByRotating(scenario: ActivityScenario<MainActivity>, orientation: Int) {
+        var before = 0
+        scenario.onActivity {
+            before = System.identityHashCode(it)
+            it.requestedOrientation = orientation
+        }
+        val deadline = SystemClock.uptimeMillis() + TIMEOUT_MS
+        var current = before
+        while (current == before && SystemClock.uptimeMillis() < deadline) {
+            SystemClock.sleep(100)
+            scenario.onActivity { current = System.identityHashCode(it) }
+        }
+        assertNotEquals("activity was not recreated", before, current)
     }
 
     private fun storedEntries(): List<VaultEntity> = runBlocking {

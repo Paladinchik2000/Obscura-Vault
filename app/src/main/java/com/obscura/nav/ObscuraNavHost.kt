@@ -167,6 +167,7 @@ private fun vaultViewModel(navController: NavHostController, backStackEntry: Nav
 
 @Composable
 private fun EntryEditor(navController: NavHostController, viewModel: VaultViewModel, entryId: String?) {
+    // Runs again when the activity is recreated; the ViewModel keeps the open form in that case.
     LaunchedEffect(entryId) { viewModel.startEditing(entryId) }
     val editor by viewModel.editor.collectAsState()
 
@@ -178,26 +179,23 @@ private fun EntryEditor(navController: NavHostController, viewModel: VaultViewMo
 
     when (val state = editor) {
         is EditorState.Ready -> if (state.entryId == entryId) {
-            key(entryId) {
-                AddEditVaultScreen(
-                    initialItem = state.entry,
-                    onSaveClick = { entry ->
-                        viewModel.saveEntry(entry)
+            AddEditVaultScreen(
+                isNewEntry = state.entry == null,
+                form = state.form,
+                onFormChange = viewModel::updateForm,
+                onSaveClick = { if (viewModel.saveEditor()) close() },
+                onDeleteClick = if (state.entry != null) {
+                    {
+                        viewModel.deleteEditedEntry()
                         close()
-                    },
-                    onDeleteClick = if (state.entry != null) {
-                        { id ->
-                            viewModel.deleteEntry(id)
-                            close()
-                        }
-                    } else {
-                        null
-                    },
-                    onBackClick = close
-                )
-            }
+                    }
+                } else {
+                    null
+                },
+                onBackClick = close
+            )
         }
         EditorState.NotFound -> LaunchedEffect(Unit) { close() }
-        EditorState.Idle, EditorState.Loading -> Unit
+        EditorState.Idle, is EditorState.Loading -> Unit
     }
 }

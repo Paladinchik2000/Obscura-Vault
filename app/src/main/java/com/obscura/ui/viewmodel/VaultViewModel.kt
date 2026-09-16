@@ -40,13 +40,60 @@ data class VaultUiState(
     val showBackupReminder: Boolean = false
 )
 
-/** The entry shown in the add/edit screen. */
+/**
+ * Everything the add/edit form holds. It lives in the ViewModel, so it survives a configuration
+ * change, and it is never written to a saved-state Bundle, so secrets don't end up on disk.
+ */
+data class EntryForm(
+    val category: VaultCategory = VaultCategory.ACCOUNT,
+    val title: String = "",
+    val usernameOrCardholder: String = "",
+    val secretValue: String = "",
+    val urlOrCardNumber: String = "",
+    val notesOrCvv: String = "",
+    val expiryDate: String = "",
+    val tags: String = "",
+    val isSecretVisible: Boolean = false,
+    val titleError: Boolean = false
+) {
+    /** Applies the form to [base], keeping id, createdAt, favourite flag and the previous updatedAt. */
+    fun applyTo(base: VaultEntity): VaultEntity = base.copy(
+        title = title.trim(),
+        category = category.id,
+        usernameOrCardholder = usernameOrCardholder,
+        secretValue = secretValue,
+        urlOrCardNumber = urlOrCardNumber,
+        notesOrCvv = notesOrCvv,
+        expiryDate = expiryDate,
+        tags = tags
+    )
+
+    companion object {
+        fun from(entry: VaultEntity?): EntryForm =
+            if (entry == null) {
+                EntryForm()
+            } else {
+                EntryForm(
+                    category = entry.getCategoryEnum(),
+                    title = entry.title,
+                    usernameOrCardholder = entry.usernameOrCardholder,
+                    secretValue = entry.secretValue,
+                    urlOrCardNumber = entry.urlOrCardNumber,
+                    notesOrCvv = entry.notesOrCvv,
+                    expiryDate = entry.expiryDate,
+                    tags = entry.tags
+                )
+            }
+    }
+}
+
+/** The add/edit screen: which entry it is for and what has been typed into it so far. */
 sealed interface EditorState {
     data object Idle : EditorState
-    data object Loading : EditorState
+    data class Loading(val entryId: String) : EditorState
 
     /** [entry] is null when a new entry is being created. */
-    data class Ready(val entryId: String?, val entry: VaultEntity?) : EditorState
+    data class Ready(val entryId: String?, val entry: VaultEntity?, val form: EntryForm) : EditorState
     data object NotFound : EditorState
 }
 
@@ -113,7 +160,7 @@ class VaultViewModel(
         }
     }
 
-    /** Drops every piece of record data this ViewModel holds, including the filters typed against it. */
+    /** Drops every piece of record data this ViewModel holds: list, filters, editor form. */
     private fun clearVaultData() {
         _vaultEntries.value = emptyList()
         _searchQuery.value = ""
@@ -168,22 +215,65 @@ class VaultViewModel(
         _uiState.update { it.copy(selectedCategoryFilter = category) }
     }
 
-    /** Loads the entry for the editor; null starts a new entry. The read goes through the session. */
+    // ------------------------------------------------------------------ editor
+
+    /**
+     * Opens the editor for [entryId], or for a new entry when null. Asking again for the editor
+     * that is already open (the screen being recreated on rotation) keeps what has been typed.
+     */
     fun startEditing(entryId: String?) {
+        when (val current = _editor.value) {
+            is EditorState.Ready -> if (current.entryId == entryId) return
+            is EditorState.Loading -> if (current.entryId == entryId) return
+            else -> Unit
+        }
+
         if (entryId == null) {
-            _editor.value = EditorState.Ready(entryId = null, entry = null)
+            _editor.value = EditorState.Ready(entryId = null, entry = null, form = EntryForm())
             return
         }
-        _editor.value = EditorState.Loading
+        _editor.value = EditorState.Loading(entryId)
         inSession {
             val entry = repository.getEntryById(entryId)
-            _editor.value = if (entry != null) EditorState.Ready(entryId, entry) else EditorState.NotFound
+            _editor.update { current ->
+                // A lock or finishEditing() while the entry was loading wins.
+                if (current is EditorState.Loading && current.entryId == entryId) {
+                    if (entry != null) EditorState.Ready(entryId, entry, EntryForm.from(entry)) else EditorState.NotFound
+                } else {
+                    current
+                }
+            }
         }
+    }
+
+    fun updateForm(transform: (EntryForm) -> EntryForm) {
+        _editor.update { if (it is EditorState.Ready) it.copy(form = transform(it.form)) else it }
+    }
+
+    /** Saves the form. Returns false, and flags the title, when the title is blank. */
+    fun saveEditor(): Boolean {
+        val state = _editor.value as? EditorState.Ready ?: return false
+        if (state.form.title.isBlank()) {
+            updateForm { it.copy(titleError = true) }
+            return false
+        }
+        val base = state.entry ?: VaultEntity(id = "", title = "", category = state.form.category.id)
+        saveEntry(state.form.applyTo(base))
+        return true
+    }
+
+    /** Deletes the entry open in the editor. Returns false when there is none (a new entry). */
+    fun deleteEditedEntry(): Boolean {
+        val entry = (_editor.value as? EditorState.Ready)?.entry ?: return false
+        deleteEntry(entry.id)
+        return true
     }
 
     fun finishEditing() {
         _editor.value = EditorState.Idle
     }
+
+    // ----------------------------------------------------------------- entries
 
     fun toggleFavorite(item: VaultEntity) = inSession {
         repository.toggleFavorite(item.id, item.isFavorite)
