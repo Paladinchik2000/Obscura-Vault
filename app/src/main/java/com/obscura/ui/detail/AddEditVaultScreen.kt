@@ -1,6 +1,5 @@
 package com.obscura.ui.detail
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,7 +39,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,13 +48,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -64,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import com.obscura.data.local.VaultEntity
 import com.obscura.data.model.VaultCategory
 import com.obscura.security.PasswordGenerator
+import com.obscura.ui.clipboard.SensitiveClipboard
 import com.obscura.ui.theme.CanvasBlack
 import com.obscura.ui.theme.CardBackground
 import com.obscura.ui.theme.CardBorder
@@ -74,6 +76,14 @@ import com.obscura.ui.theme.SecurityYellow
 import com.obscura.ui.theme.TextMuted
 import com.obscura.ui.theme.TextPrimary
 import com.obscura.ui.theme.TextSecondary
+import kotlinx.coroutines.launch
+
+object EntryTags {
+    const val TITLE = "entry_title"
+    const val USERNAME = "entry_username"
+    const val SECRET = "entry_secret"
+    const val SAVE = "entry_save"
+}
 
 @Composable
 fun AddEditVaultScreen(
@@ -88,17 +98,23 @@ fun AddEditVaultScreen(
     var secretValue by remember { mutableStateOf(initialItem?.secretValue ?: "") }
     var urlOrCardNumber by remember { mutableStateOf(initialItem?.urlOrCardNumber ?: "") }
     var notesOrCvv by remember { mutableStateOf(initialItem?.notesOrCvv ?: "") }
+    var expiryDate by remember { mutableStateOf(initialItem?.expiryDate ?: "") }
     var tags by remember { mutableStateOf(initialItem?.tags ?: "") }
 
     var isSecretVisible by remember { mutableStateOf(false) }
     var showGeneratorDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var titleError by remember { mutableStateOf(false) }
 
     val strength = remember(secretValue) { PasswordGenerator.evaluateStrength(secretValue) }
-    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = CanvasBlack,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -125,7 +141,7 @@ fun AddEditVaultScreen(
                 }
 
                 if (initialItem != null && onDeleteClick != null) {
-                    IconButton(onClick = { onDeleteClick(initialItem.id) }) {
+                    IconButton(onClick = { showDeleteConfirmation = true }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete",
@@ -188,8 +204,14 @@ fun AddEditVaultScreen(
             CustomInputField(
                 label = "Title / Service Name",
                 value = title,
-                onValueChange = { title = it },
-                placeholder = "e.g. GitHub, Chase Bank, Server Key"
+                onValueChange = {
+                    title = it
+                    if (it.isNotBlank()) titleError = false
+                },
+                placeholder = "e.g. GitHub, Chase Bank, Server Key",
+                isError = titleError,
+                errorText = "A title is required",
+                testTag = EntryTags.TITLE
             )
 
             when (category) {
@@ -205,7 +227,8 @@ fun AddEditVaultScreen(
                         label = "Username / Email",
                         value = usernameOrCardholder,
                         onValueChange = { usernameOrCardholder = it },
-                        placeholder = "user@example.com"
+                        placeholder = "user@example.com",
+                        testTag = EntryTags.USERNAME
                     )
                 }
 
@@ -214,7 +237,8 @@ fun AddEditVaultScreen(
                         label = "Cardholder Name",
                         value = usernameOrCardholder,
                         onValueChange = { usernameOrCardholder = it },
-                        placeholder = "JOHN DOE"
+                        placeholder = "JOHN DOE",
+                        testTag = EntryTags.USERNAME
                     )
 
                     CustomInputField(
@@ -228,8 +252,8 @@ fun AddEditVaultScreen(
                         Box(modifier = Modifier.weight(1f)) {
                             CustomInputField(
                                 label = "Expiry Date",
-                                value = tags, // Reusing tags for expiry
-                                onValueChange = { tags = it },
+                                value = expiryDate,
+                                onValueChange = { expiryDate = it },
                                 placeholder = "MM/YY"
                             )
                         }
@@ -285,7 +309,12 @@ fun AddEditVaultScreen(
                         }
 
                         if (secretValue.isNotEmpty()) {
-                            IconButton(onClick = { clipboardManager.setText(AnnotatedString(secretValue)) }) {
+                            IconButton(onClick = {
+                                SensitiveClipboard.copy(context, secretValue)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Copied. The clipboard is cleared in 30 seconds.")
+                                }
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.ContentCopy,
                                     contentDescription = "Copy",
@@ -300,13 +329,15 @@ fun AddEditVaultScreen(
                 OutlinedTextField(
                     value = secretValue,
                     onValueChange = { secretValue = it },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(EntryTags.SECRET),
                     visualTransformation = if (isSecretVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { isSecretVisible = !isSecretVisible }) {
                             Icon(
                                 imageVector = if (isSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = "Toggle Secret Visibility",
+                                contentDescription = if (isSecretVisible) "Hide secret" else "Show secret",
                                 tint = TextSecondary
                             )
                         }
@@ -373,24 +404,31 @@ fun AddEditVaultScreen(
             // Save Action Button
             Button(
                 onClick = {
-                    if (title.isNotBlank()) {
-                        val entity = VaultEntity(
-                            id = initialItem?.id ?: "",
-                            title = title,
-                            category = category.id,
-                            usernameOrCardholder = usernameOrCardholder,
-                            secretValue = secretValue,
-                            urlOrCardNumber = urlOrCardNumber,
-                            notesOrCvv = notesOrCvv,
-                            tags = tags,
-                            isFavorite = initialItem?.isFavorite ?: false
+                    if (title.isBlank()) {
+                        titleError = true
+                    } else {
+                        // Edit the loaded entry rather than building a new one, so id, createdAt,
+                        // favourite flag and the previous updatedAt survive; the repository then
+                        // moves updatedAt forward.
+                        val base = initialItem ?: VaultEntity(id = "", title = "", category = category.id)
+                        onSaveClick(
+                            base.copy(
+                                title = title.trim(),
+                                category = category.id,
+                                usernameOrCardholder = usernameOrCardholder,
+                                secretValue = secretValue,
+                                urlOrCardNumber = urlOrCardNumber,
+                                notesOrCvv = notesOrCvv,
+                                expiryDate = expiryDate,
+                                tags = tags
+                            )
                         )
-                        onSaveClick(entity)
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(52.dp)
+                    .testTag(EntryTags.SAVE),
                 colors = ButtonDefaults.buttonColors(containerColor = CrimsonPrimary),
                 shape = RoundedCornerShape(14.dp)
             ) {
@@ -416,6 +454,36 @@ fun AddEditVaultScreen(
             }
         )
     }
+
+    if (showDeleteConfirmation && initialItem != null && onDeleteClick != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            containerColor = CardBackground,
+            title = { Text("Delete this entry?", color = TextPrimary, fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "“${initialItem.title}” will be removed from the vault. This cannot be undone.",
+                    color = TextSecondary
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDeleteClick(initialItem.id)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = SecurityRed)
+                ) {
+                    Text("Delete", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Cancel", color = TextMuted)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -424,7 +492,10 @@ fun CustomInputField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
+    isError: Boolean = false,
+    errorText: String? = null,
+    testTag: String? = null
 ) {
     Column {
         Text(
@@ -436,9 +507,12 @@ fun CustomInputField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
             placeholder = { Text(placeholder, color = TextMuted) },
             singleLine = singleLine,
+            isError = isError,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = CardBackground,
@@ -449,6 +523,14 @@ fun CustomInputField(
                 unfocusedTextColor = TextPrimary
             )
         )
+        if (isError && errorText != null) {
+            Text(
+                text = errorText,
+                style = MaterialTheme.typography.bodySmall,
+                color = SecurityRed,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
     }
 }
 
@@ -463,7 +545,7 @@ fun PasswordGeneratorDialog(
     var useDigits by remember { mutableStateOf(true) }
     var useSymbols by remember { mutableStateOf(true) }
 
-    var previewPassword by remember(length, useUpper, useLower, useDigits, useSymbols) {
+    val previewPassword by remember(length, useUpper, useLower, useDigits, useSymbols) {
         mutableStateOf(
             PasswordGenerator.generatePassword(
                 PasswordGenerator.GeneratorConfig(
@@ -496,10 +578,10 @@ fun PasswordGeneratorDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = previewPassword,
+                        text = previewPassword.ifEmpty { "Pick at least one character set" },
                         style = MaterialTheme.typography.bodyLarge,
                         fontFamily = FontFamily.Monospace,
-                        color = CrimsonPrimary,
+                        color = if (previewPassword.isEmpty()) TextMuted else CrimsonPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -521,37 +603,16 @@ fun PasswordGeneratorDialog(
                     )
                 )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = useUpper,
-                        onCheckedChange = { useUpper = it },
-                        colors = CheckboxDefaults.colors(checkedColor = CrimsonPrimary)
-                    )
-                    Text("Uppercase (A-Z)", color = TextPrimary)
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = useDigits,
-                        onCheckedChange = { useDigits = it },
-                        colors = CheckboxDefaults.colors(checkedColor = CrimsonPrimary)
-                    )
-                    Text("Digits (0-9)", color = TextPrimary)
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = useSymbols,
-                        onCheckedChange = { useSymbols = it },
-                        colors = CheckboxDefaults.colors(checkedColor = CrimsonPrimary)
-                    )
-                    Text("Symbols (!@#$)", color = TextPrimary)
-                }
+                GeneratorOption("Uppercase (A-Z)", useUpper) { useUpper = it }
+                GeneratorOption("Lowercase (a-z)", useLower) { useLower = it }
+                GeneratorOption("Digits (0-9)", useDigits) { useDigits = it }
+                GeneratorOption("Symbols (!@#$)", useSymbols) { useSymbols = it }
             }
         },
         confirmButton = {
             Button(
                 onClick = { onPasswordGenerated(previewPassword) },
+                enabled = previewPassword.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = CrimsonPrimary)
             ) {
                 Text("Use Password", color = CanvasBlack, fontWeight = FontWeight.Bold)
@@ -563,4 +624,16 @@ fun PasswordGeneratorDialog(
             }
         }
     )
+}
+
+@Composable
+private fun GeneratorOption(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(checkedColor = CrimsonPrimary)
+        )
+        Text(label, color = TextPrimary)
+    }
 }

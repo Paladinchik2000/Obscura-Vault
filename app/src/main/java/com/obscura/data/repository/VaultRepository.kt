@@ -47,12 +47,18 @@ class VaultRepositoryImpl : VaultRepository {
     override suspend fun getEntryById(id: String): VaultEntity? =
         VaultSession.runInSession { dao().getEntryById(id) }
 
+    /**
+     * New entries get a random UUID and createdAt == updatedAt. Every save of an existing entry
+     * moves updatedAt strictly past the version being replaced, even if the clock stepped back:
+     * backup merges treat an equal updatedAt as "not newer".
+     */
     override suspend fun saveEntry(entry: VaultEntity) {
         VaultSession.runInSession {
+            val now = System.currentTimeMillis()
             val entryToSave = if (entry.id.isBlank()) {
-                entry.copy(id = UUID.randomUUID().toString(), createdAt = System.currentTimeMillis())
+                entry.copy(id = UUID.randomUUID().toString(), createdAt = now, updatedAt = now)
             } else {
-                entry.copy(updatedAt = System.currentTimeMillis())
+                entry.copy(updatedAt = maxOf(now, entry.updatedAt + 1))
             }
             dao().insertEntry(entryToSave)
         }

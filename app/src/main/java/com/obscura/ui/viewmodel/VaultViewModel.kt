@@ -40,6 +40,16 @@ data class VaultUiState(
     val showBackupReminder: Boolean = false
 )
 
+/** The entry shown in the add/edit screen. */
+sealed interface EditorState {
+    data object Idle : EditorState
+    data object Loading : EditorState
+
+    /** [entry] is null when a new entry is being created. */
+    data class Ready(val entryId: String?, val entry: VaultEntity?) : EditorState
+    data object NotFound : EditorState
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @Keep
 class VaultViewModel(
@@ -52,6 +62,9 @@ class VaultViewModel(
 
     private val _vaultEntries = MutableStateFlow<List<VaultEntity>>(emptyList())
     val vaultEntries: StateFlow<List<VaultEntity>> = _vaultEntries.asStateFlow()
+
+    private val _editor = MutableStateFlow<EditorState>(EditorState.Idle)
+    val editor: StateFlow<EditorState> = _editor.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     private val _selectedCategory = MutableStateFlow<VaultCategory?>(null)
@@ -105,6 +118,7 @@ class VaultViewModel(
         _vaultEntries.value = emptyList()
         _searchQuery.value = ""
         _selectedCategory.value = null
+        _editor.value = EditorState.Idle
         _uiState.value = VaultUiState()
     }
 
@@ -152,6 +166,23 @@ class VaultViewModel(
     fun onCategoryFilterSelected(category: VaultCategory?) {
         _selectedCategory.value = category
         _uiState.update { it.copy(selectedCategoryFilter = category) }
+    }
+
+    /** Loads the entry for the editor; null starts a new entry. The read goes through the session. */
+    fun startEditing(entryId: String?) {
+        if (entryId == null) {
+            _editor.value = EditorState.Ready(entryId = null, entry = null)
+            return
+        }
+        _editor.value = EditorState.Loading
+        inSession {
+            val entry = repository.getEntryById(entryId)
+            _editor.value = if (entry != null) EditorState.Ready(entryId, entry) else EditorState.NotFound
+        }
+    }
+
+    fun finishEditing() {
+        _editor.value = EditorState.Idle
     }
 
     fun toggleFavorite(item: VaultEntity) = inSession {

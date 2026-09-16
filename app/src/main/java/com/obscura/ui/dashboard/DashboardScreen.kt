@@ -22,13 +22,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,33 +39,43 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.obscura.data.local.VaultEntity
 import com.obscura.data.model.VaultCategory
+import com.obscura.ui.backup.BackupReminderDialog
+import com.obscura.ui.clipboard.SensitiveClipboard
 import com.obscura.ui.theme.CanvasBlack
 import com.obscura.ui.theme.CardBackground
 import com.obscura.ui.theme.CardBorder
 import com.obscura.ui.theme.CrimsonPrimary
 import com.obscura.ui.theme.SecurityGreen
 import com.obscura.ui.theme.SecurityRed
-import com.obscura.ui.theme.SecurityYellow
 import com.obscura.ui.theme.TextMuted
 import com.obscura.ui.theme.TextPrimary
 import com.obscura.ui.theme.TextSecondary
-import com.obscura.ui.backup.BackupReminderDialog
+import kotlinx.coroutines.launch
+
+object DashboardTags {
+    const val SEARCH = "dashboard_search"
+    const val ADD = "dashboard_add"
+    const val LOCK = "dashboard_lock"
+    const val BACKUP = "dashboard_backup"
+}
 
 @Composable
 fun DashboardScreen(
@@ -80,13 +91,13 @@ fun DashboardScreen(
     onAddNewClick: () -> Unit,
     onToggleFavorite: (VaultEntity) -> Unit,
     onLockVault: () -> Unit,
-    onNavigateAudit: () -> Unit,
+    onOpenBackup: () -> Unit,
     onClearToast: () -> Unit,
     showBackupReminder: Boolean = false,
-    onOpenBackup: () -> Unit = {},
     onBackupReminderHandled: () -> Unit = {}
 ) {
-    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(toastMessage) {
@@ -105,7 +116,8 @@ fun DashboardScreen(
                 onClick = onAddNewClick,
                 containerColor = CrimsonPrimary,
                 contentColor = CanvasBlack,
-                shape = CircleShape
+                shape = CircleShape,
+                modifier = Modifier.testTag(DashboardTags.ADD)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -159,17 +171,18 @@ fun DashboardScreen(
                 }
 
                 Row {
-                    // Audit Button
+                    // Backup Button
                     IconButton(
-                        onClick = onNavigateAudit,
+                        onClick = onOpenBackup,
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(CardBackground)
                             .border(1.dp, CardBorder, CircleShape)
+                            .testTag(DashboardTags.BACKUP)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Security,
-                            contentDescription = "Security Audit",
+                            imageVector = Icons.Default.Backup,
+                            contentDescription = "Backup",
                             tint = CrimsonPrimary
                         )
                     }
@@ -183,6 +196,7 @@ fun DashboardScreen(
                             .clip(CircleShape)
                             .background(CardBackground)
                             .border(1.dp, CardBorder, CircleShape)
+                            .testTag(DashboardTags.LOCK)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Lock,
@@ -234,7 +248,9 @@ fun DashboardScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = onSearchQueryChanged,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(DashboardTags.SEARCH),
                 placeholder = { Text("Search by title, username or tag...", color = TextMuted) },
                 leadingIcon = {
                     Icon(
@@ -294,33 +310,16 @@ fun DashboardScreen(
 
             // Vault Items List
             if (entries.isEmpty()) {
-                Box(
+                EmptyVaultState(
+                    searchQuery = searchQuery,
+                    selectedCategory = selectedCategory,
+                    onAddNewClick = onAddNewClick,
+                    onClearSearch = { onSearchQueryChanged("") },
+                    onShowAll = { onCategorySelected(null) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.Shield,
-                            contentDescription = null,
-                            tint = TextMuted,
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = if (searchQuery.isNotBlank()) "No records matching query" else "Vault is Empty",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextSecondary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Tap the + button below to add an account, card, or note",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextMuted
-                        )
-                    }
-                }
+                        .weight(1f)
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
@@ -332,7 +331,10 @@ fun DashboardScreen(
                             item = item,
                             onItemClick = { onItemClick(item) },
                             onCopySecret = { secret ->
-                                clipboardManager.setText(AnnotatedString(secret))
+                                SensitiveClipboard.copy(context, secret)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Copied. The clipboard is cleared in 30 seconds.")
+                                }
                             },
                             onToggleFavorite = { onToggleFavorite(item) }
                         )
@@ -347,6 +349,74 @@ fun DashboardScreen(
             onMakeBackup = { onBackupReminderHandled(); onOpenBackup() },
             onDismiss = onBackupReminderHandled
         )
+    }
+}
+
+/** What to show instead of the list: an empty vault, an empty category, or a search with no hits. */
+@Composable
+private fun EmptyVaultState(
+    searchQuery: String,
+    selectedCategory: VaultCategory?,
+    onAddNewClick: () -> Unit,
+    onClearSearch: () -> Unit,
+    onShowAll: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val (title, body) = when {
+        searchQuery.isNotBlank() ->
+            "No entries match “$searchQuery”" to "Try another word, or clear the search."
+        selectedCategory != null ->
+            "No ${selectedCategory.title} entries yet" to "Add one, or show every entry."
+        else ->
+            "Your vault is empty" to "Add your first password, card or secure note. It stays encrypted on this device."
+    }
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Shield,
+                contentDescription = null,
+                tint = TextMuted,
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = TextPrimary,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMuted,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            if (searchQuery.isNotBlank()) {
+                TextButton(onClick = onClearSearch) { Text("Clear search", color = CrimsonPrimary) }
+            } else {
+                Button(
+                    onClick = onAddNewClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = CrimsonPrimary, contentColor = CanvasBlack)
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (selectedCategory == null) "Add your first entry" else "Add entry",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                if (selectedCategory != null) {
+                    TextButton(onClick = onShowAll) { Text("Show all", color = CrimsonPrimary) }
+                }
+            }
+        }
     }
 }
 
