@@ -2,5 +2,5 @@
   "name": "Obscura Fortress Password Vault",
   "description": "Offline-First Android Password Manager with SQLCipher Room DB, Biometrics, FIDO2/Passkeys, and Encrypted Backup & Export (AES-256-GCM / PBKDF2)",
   "requestFramePermissions": ["camera"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }
