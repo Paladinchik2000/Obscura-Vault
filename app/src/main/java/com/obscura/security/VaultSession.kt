@@ -14,6 +14,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -68,6 +69,20 @@ object VaultSession {
 
     private var lastActivityAt: Long = 0L
 
+    /**
+     * Set while the app itself has a system screen open for a result (a SAF picker). That screen
+     * is a separate activity, so ours is stopped while it is up; locking then would throw the
+     * result away. 0 means nothing of ours is open.
+     */
+    @Volatile private var awaitingOwnResultSince: Long = 0L
+
+    /** Locks once the grace below runs out, so an abandoned picker cannot hold the vault open. */
+    private var graceLockJob: Job? = null
+
+    /** How long a system screen we started may hold off the auto-lock. */
+    @VisibleForTesting
+    internal var ownResultGraceMs: Long = 2 * 60 * 1000L
+
     /** Auto-lock after this long in the background; set from AutoLockSettings. */
     @Volatile
     var idleTimeoutMs: Long = 2 * 60 * 1000L
@@ -119,17 +134,64 @@ object VaultSession {
         lastActivityAt = System.currentTimeMillis()
     }
 
+    /**
+     * Call right before launching a system screen for a result, and again from the result
+     * callback — including when the user cancels — via [finishedOwnActivityResult].
+     */
+    fun startedOwnActivityResult() {
+        awaitingOwnResultSince = System.currentTimeMillis()
+    }
+
+    fun finishedOwnActivityResult() {
+        awaitingOwnResultSince = 0L
+        graceLockJob?.cancel()
+        graceLockJob = null
+        touch()
+    }
+
+    /** Milliseconds left of the grace, or 0 when nothing of ours is open or it has run out. */
+    private fun ownResultGraceRemaining(): Long {
+        val since = awaitingOwnResultSince
+        if (since == 0L) return 0L
+        return (since + ownResultGraceMs - System.currentTimeMillis()).coerceAtLeast(0L)
+    }
+
     /** With the "immediately" setting there is no grace period: lock as the app leaves the screen. */
     fun lockIfImmediate() {
-        if (session != null && idleTimeoutMs <= 0L) requestLock()
+        if (session == null || idleTimeoutMs > 0L) return
+
+        val remaining = ownResultGraceRemaining()
+        if (remaining == 0L) {
+            requestLock()
+            return
+        }
+
+        // Our own picker is open: hold the lock until it returns, but never indefinitely.
+        graceLockJob?.cancel()
+        graceLockJob = controlScope.launch {
+            delay(remaining)
+            if (ownResultGraceRemaining() == 0L && awaitingOwnResultSince != 0L) {
+                awaitingOwnResultSince = 0L
+                lock()
+            }
+        }
     }
 
     fun lockIfIdle() {
-        if (session != null && System.currentTimeMillis() - lastActivityAt > idleTimeoutMs) requestLock()
+        if (session == null) return
+        // Coming back from our own picker is not idleness, whatever the timeout is.
+        if (ownResultGraceRemaining() > 0L) {
+            touch()
+            return
+        }
+        if (System.currentTimeMillis() - lastActivityAt > idleTimeoutMs) requestLock()
     }
 
     /** Caller holds [transitions]. */
     private suspend fun closeSession() {
+        awaitingOwnResultSince = 0L
+        graceLockJob?.cancel()
+        graceLockJob = null
         val current = session ?: return
         // New work is refused from here on; work already running keeps its own session reference.
         session = null

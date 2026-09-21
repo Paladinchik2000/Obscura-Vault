@@ -84,6 +84,30 @@ AutofillService в приложении пока нет, `AutofillBiometricAuthA
 `android:permission="android.permission.BIND_AUTOFILL_SERVICE"` у `<service>`,
 это не `uses-permission`.
 
+## Внешние Activity и автоблокировка
+
+Системный экран, который мы запускаем сами за результатом (SAF-пикеры
+экспорта и импорта), — отдельная Activity: наша получает `ON_STOP`, и при
+автоблокировке «Immediately» хранилище закрылось бы, а результат пришёл бы
+уже на экран входа.
+
+Поэтому любой такой запуск идёт только через `rememberVaultResultLauncher`:
+он помечает `VaultSession` перед запуском и снимает пометку в колбэке
+результата, включая отмену пикера. Льгота ограничена
+`VaultSession.ownResultGraceMs` (2 минуты) — брошенный пикер не должен
+держать хранилище открытым. Остальные уходы в фон блокируют как обычно.
+
+Добавляешь новый запуск внешней Activity за результатом — используй этот
+механизм, иначе «Immediately» ломает сценарий.
+
+`BiometricPrompt` льготы не требует: в APK нет ни одной Activity от
+androidx.biometric, а тест
+`PickerAutoLockGraceTest.theBiometricPromptDoesNotStopTheActivity`
+проверяет, что при вызове промпта `ON_STOP` не приходит. Отдельный случай —
+`AutofillBiometricAuthActivity`: она разрешает `DEVICE_CREDENTIAL`, а
+системный ввод PIN устройства это уже отдельная Activity. К сессии
+хранилища тот экран отношения не имеет.
+
 ## Правила для тебя
 
 - Перед изменением криптографии сверяй примитивы с внешним эталоном

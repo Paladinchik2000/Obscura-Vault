@@ -1,7 +1,6 @@
 package com.obscura.ui.backup
 
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +25,7 @@ import com.obscura.data.backup.ImportPreview
 import com.obscura.data.backup.ImportResult
 import com.obscura.security.PasswordGenerator
 import com.obscura.ui.common.asString
+import com.obscura.ui.common.rememberVaultResultLauncher
 import com.obscura.ui.common.labelRes
 
 @Composable
@@ -37,12 +37,14 @@ fun BackupScreen(
     val importUi by viewModel.importState.collectAsState()
     val busy = exportUi.isBusy || importUi.isBusy
 
+    // Both pickers run through rememberVaultResultLauncher: they are separate activities, so the
+    // vault must not auto-lock while one of them is open.
     // The picker creates an empty document; BackupManager deletes it again if the export fails.
-    val createDocument = rememberLauncherForActivityResult(
+    val createDocument = rememberVaultResultLauncher(
         ActivityResultContracts.CreateDocument("application/octet-stream")
     ) { uri -> viewModel.onExportDestinationChosen(uri) }
 
-    val openDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    val openDocument = rememberVaultResultLauncher(ActivityResultContracts.OpenDocument()) { uri ->
         viewModel.onImportFileChosen(uri)
     }
 
@@ -74,14 +76,14 @@ fun BackupScreen(
                 otherBusy = importUi.isBusy,
                 onPasswordChange = viewModel::onExportPasswordChanged,
                 onConfirmationChange = viewModel::onExportConfirmationChanged,
-                onStart = { createDocument.launch(viewModel.suggestedFileName()) },
+                onStart = { createDocument(viewModel.suggestedFileName()) },
                 onAcknowledge = viewModel::onExportResultAcknowledged
             )
 
             ImportSection(
                 state = importUi,
                 otherBusy = exportUi.isBusy,
-                onPickFile = { openDocument.launch(arrayOf("*/*")) },
+                onPickFile = { openDocument(arrayOf("*/*")) },
                 onPasswordChange = viewModel::onImportPasswordChanged,
                 onDecrypt = viewModel::onImportDecrypt,
                 onModeChosen = viewModel::onImportModeChosen,
