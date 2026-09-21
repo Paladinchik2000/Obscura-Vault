@@ -161,23 +161,6 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Call from settings, or right after first-run setup, while the vault is unlocked. */
-    fun enrollBiometrics(activity: FragmentActivity) = viewModelScope.launch {
-        if (BiometricAuthenticator.availability(activity) != BiometricAvailability.AVAILABLE) return@launch
-        KeystoreCrypto.deleteBiometricKey()
-        val outcome = BiometricAuthenticator.authenticate(
-            activity = activity,
-            title = string(R.string.biometric_enroll_title),
-            subtitle = string(R.string.biometric_enroll_subtitle),
-            negativeButton = string(R.string.action_cancel),
-            cipherProvider = { KeystoreCrypto.bioEncryptCipher() }
-        )
-        if (outcome is BiometricOutcome.Success) {
-            repo.enableBiometrics(outcome.cipher, VaultSession.requireKey())
-            _state.update { it.copy(canUseBiometrics = true) }
-        }
-    }
-
     fun consumeUnlock() = _state.update { it.copy(unlocked = false) }
 
     private fun string(id: Int): String = getApplication<Application>().getString(id)

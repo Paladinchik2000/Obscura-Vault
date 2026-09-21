@@ -3,6 +3,7 @@ package com.obscura.ui.common
 import androidx.annotation.StringRes
 import com.obscura.R
 import com.obscura.data.model.VaultCategory
+import com.obscura.security.BiometricAvailability
 import com.obscura.security.PasswordGenerator
 
 @StringRes
@@ -14,6 +15,13 @@ fun VaultCategory.labelRes(): Int = when (this) {
 }
 
 @StringRes
+fun BiometricAvailability.labelRes(): Int = when (this) {
+    BiometricAvailability.AVAILABLE -> R.string.settings_biometrics_disabled
+    BiometricAvailability.NOT_ENROLLED -> R.string.settings_biometrics_not_enrolled
+    BiometricAvailability.NO_HARDWARE -> R.string.settings_biometrics_no_hardware
+    BiometricAvailability.TEMPORARILY_UNAVAILABLE -> R.string.settings_biometrics_unavailable
+}
+
 fun PasswordGenerator.StrengthLevel.labelRes(): Int = when (this) {
     PasswordGenerator.StrengthLevel.EMPTY -> R.string.strength_empty
     PasswordGenerator.StrengthLevel.WEAK -> R.string.strength_weak

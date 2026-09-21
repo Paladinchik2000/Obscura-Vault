@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,11 +43,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.obscura.BuildConfig
 import com.obscura.R
 import com.obscura.ui.auth.PIN_LENGTH
 import com.obscura.ui.common.asString
+import com.obscura.ui.common.labelRes
 import kotlinx.coroutines.delay
 
 object SettingsTags {
@@ -55,6 +59,9 @@ object SettingsTags {
     const val PIN_NEW = "settings_pin_new"
     const val PIN_CONFIRM = "settings_pin_confirm"
     const val PIN_SUBMIT = "settings_pin_submit"
+    const val BIO_STATE = "settings_bio_state"
+    const val BIO_ACTION = "settings_bio_action"
+    const val BIO_DISABLE_CONFIRM = "settings_bio_disable_confirm"
 }
 
 @Composable
@@ -65,6 +72,9 @@ fun SettingsScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val activity = context as FragmentActivity
+
+    LaunchedEffect(Unit) { viewModel.refreshBiometrics(activity) }
 
     LaunchedEffect(state.message) {
         state.message?.let {
@@ -105,6 +115,14 @@ fun SettingsScreen(
                     onNewChange = viewModel::onNewPinChanged,
                     onConfirmChange = viewModel::onConfirmPinChanged,
                     onSubmit = viewModel::submitPinChange
+                )
+
+                BiometricsSection(
+                    state = state.biometrics,
+                    onEnable = { viewModel.enableBiometrics(activity) },
+                    onRequestDisable = viewModel::requestDisableBiometrics,
+                    onCancelDisable = viewModel::cancelDisableBiometrics,
+                    onConfirmDisable = viewModel::confirmDisableBiometrics
                 )
 
                 AboutSection()
@@ -222,6 +240,61 @@ private fun PinField(
             .fillMaxWidth()
             .testTag(testTag)
     )
+}
+
+@Composable
+private fun BiometricsSection(
+    state: BiometricsState,
+    onEnable: () -> Unit,
+    onRequestDisable: () -> Unit,
+    onCancelDisable: () -> Unit,
+    onConfirmDisable: () -> Unit
+) {
+    SettingsSection(title = stringResource(R.string.settings_biometrics_title)) {
+        Text(
+            text = stringResource(
+                if (state.isEnabled) R.string.settings_biometrics_enabled
+                else state.availability.labelRes()
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.testTag(SettingsTags.BIO_STATE)
+        )
+
+        if (state.isEnabled) {
+            OutlinedButton(
+                onClick = onRequestDisable,
+                enabled = !state.isBusy,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(SettingsTags.BIO_ACTION)
+            ) { Text(stringResource(R.string.settings_biometrics_disable)) }
+        } else {
+            Button(
+                onClick = onEnable,
+                enabled = state.canEnable,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(SettingsTags.BIO_ACTION)
+            ) { Text(stringResource(R.string.settings_biometrics_enable)) }
+        }
+    }
+
+    if (state.confirmDisable) {
+        AlertDialog(
+            onDismissRequest = onCancelDisable,
+            title = { Text(stringResource(R.string.settings_biometrics_disable_title)) },
+            text = { Text(stringResource(R.string.settings_biometrics_disable_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = onConfirmDisable,
+                    modifier = Modifier.testTag(SettingsTags.BIO_DISABLE_CONFIRM)
+                ) { Text(stringResource(R.string.settings_biometrics_disable)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onCancelDisable) { Text(stringResource(R.string.action_cancel)) }
+            }
+        )
+    }
 }
 
 @Composable
