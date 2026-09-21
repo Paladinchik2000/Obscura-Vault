@@ -51,6 +51,7 @@ data class BiometricsState(
 }
 
 data class SettingsUiState(
+    val autoLock: AutoLockOption = AutoLockOption.DEFAULT,
     val pinChange: PinChangeState = PinChangeState(),
     val biometrics: BiometricsState = BiometricsState(),
     val message: UiText? = null
@@ -59,8 +60,14 @@ data class SettingsUiState(
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repo = AuthRepository(app)
+    private val autoLock = AutoLockSettings(app)
 
-    private val _state = MutableStateFlow(SettingsUiState(biometrics = BiometricsState(isEnabled = repo.isBiometricEnrolled)))
+    private val _state = MutableStateFlow(
+        SettingsUiState(
+            autoLock = autoLock.option,
+            biometrics = BiometricsState(isEnabled = repo.isBiometricEnrolled)
+        )
+    )
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
 
     // ----------------------------------------------------------------- change pin
@@ -117,6 +124,13 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
         }
+    }
+
+    // ------------------------------------------------------------------ auto-lock
+
+    fun onAutoLockSelected(option: AutoLockOption) {
+        autoLock.option = option
+        _state.update { it.copy(autoLock = option) }
     }
 
     // ----------------------------------------------------------------- biometrics

@@ -20,6 +20,7 @@ import com.obscura.ui.dashboard.DashboardTags
 import com.obscura.ui.detail.EntryTags
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -48,7 +49,10 @@ class SettingsFlowTest {
     fun freshInstall() = resetAppState()
 
     @After
-    fun tearDown() = resetAppState()
+    fun tearDown() {
+        resetAppState()
+        VaultSession.idleTimeoutMs = AutoLockOption.DEFAULT.millis
+    }
 
     @Test
     fun settingsOpenFromDashboardAndCloseOnLock() = withMainActivity {
@@ -97,6 +101,20 @@ class SettingsFlowTest {
 
         enterPin(NEW_PIN)
         waitForText("GitHub test")
+    }
+
+    @Test
+    fun choosingAnAutoLockTimeoutStoresItAndAppliesItToTheSession() = withMainActivity {
+        createVault()
+        compose.onNodeWithTag(DashboardTags.SETTINGS).performClick()
+
+        val tag = SettingsTags.autoLock(AutoLockOption.SECONDS_30)
+        waitForTag(tag)
+        compose.onNodeWithTag(tag).performScrollTo().performClick()
+
+        compose.waitUntil(TIMEOUT_MS) { VaultSession.idleTimeoutMs == AutoLockOption.SECONDS_30.millis }
+        val prefs = context.getSharedPreferences(AutoLockSettings.PREFS_NAME, Context.MODE_PRIVATE)
+        assertEquals(AutoLockOption.SECONDS_30.millis, prefs.getLong(AutoLockSettings.KEY_TIMEOUT, -1L))
     }
 
     // ------------------------------------------------------------------ helpers

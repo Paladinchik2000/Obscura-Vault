@@ -68,7 +68,8 @@ object VaultSession {
 
     private var lastActivityAt: Long = 0L
 
-    /** Auto-lock after this long in the background. Make it a user setting later. */
+    /** Auto-lock after this long in the background; set from AutoLockSettings. */
+    @Volatile
     var idleTimeoutMs: Long = 2 * 60 * 1000L
 
     private val _isUnlocked = MutableStateFlow(false)
@@ -116,6 +117,11 @@ object VaultSession {
 
     fun touch() {
         lastActivityAt = System.currentTimeMillis()
+    }
+
+    /** With the "immediately" setting there is no grace period: lock as the app leaves the screen. */
+    fun lockIfImmediate() {
+        if (session != null && idleTimeoutMs <= 0L) requestLock()
     }
 
     fun lockIfIdle() {

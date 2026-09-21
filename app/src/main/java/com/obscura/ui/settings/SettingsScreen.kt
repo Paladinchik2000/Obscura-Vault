@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -22,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -39,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -62,6 +65,8 @@ object SettingsTags {
     const val BIO_STATE = "settings_bio_state"
     const val BIO_ACTION = "settings_bio_action"
     const val BIO_DISABLE_CONFIRM = "settings_bio_disable_confirm"
+
+    fun autoLock(option: AutoLockOption) = "settings_autolock_" + option.name
 }
 
 @Composable
@@ -124,6 +129,8 @@ fun SettingsScreen(
                     onCancelDisable = viewModel::cancelDisableBiometrics,
                     onConfirmDisable = viewModel::confirmDisableBiometrics
                 )
+
+                AutoLockSection(selected = state.autoLock, onSelect = viewModel::onAutoLockSelected)
 
                 AboutSection()
             }
@@ -294,6 +301,32 @@ private fun BiometricsSection(
                 TextButton(onClick = onCancelDisable) { Text(stringResource(R.string.action_cancel)) }
             }
         )
+    }
+}
+
+@Composable
+private fun AutoLockSection(selected: AutoLockOption, onSelect: (AutoLockOption) -> Unit) {
+    SettingsSection(title = stringResource(R.string.settings_autolock_title)) {
+        AutoLockOption.entries.forEach { option ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectable(
+                        selected = option == selected,
+                        role = Role.RadioButton,
+                        onClick = { onSelect(option) }
+                    )
+                    .testTag(SettingsTags.autoLock(option))
+            ) {
+                RadioButton(selected = option == selected, onClick = null)
+                Text(
+                    stringResource(option.labelRes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
     }
 }
 

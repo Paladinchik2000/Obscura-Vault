@@ -2,6 +2,7 @@ package com.obscura
 
 import android.app.Application
 import androidx.annotation.Keep
+import com.obscura.ui.settings.AutoLockSettings
 
 /**
  * ObscuraApplication
@@ -15,5 +16,6 @@ class ObscuraApplication : Application() {
         super.onCreate()
         // sqlcipher-android does not load its native library itself: load it before any database opens.
         System.loadLibrary("sqlcipher")
+        AutoLockSettings(this).applyToSession()
     }
 }

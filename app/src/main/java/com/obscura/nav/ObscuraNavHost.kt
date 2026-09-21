@@ -51,7 +51,10 @@ fun ObscuraNavHost(navController: NavHostController = rememberNavController()) {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_STOP -> VaultSession.touch()
+                Lifecycle.Event.ON_STOP -> {
+                    VaultSession.touch()
+                    VaultSession.lockIfImmediate()
+                }
                 Lifecycle.Event.ON_START -> VaultSession.lockIfIdle()
                 else -> Unit
             }
