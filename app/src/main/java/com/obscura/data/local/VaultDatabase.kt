@@ -40,7 +40,7 @@ abstract class VaultDatabase : RoomDatabase() {
     }
 
     companion object {
-        private const val DATABASE_NAME = "obscura_encrypted_vault.db"
+        const val DATABASE_NAME = "obscura_encrypted_vault.db"
 
         /**
          * Builds a new instance keyed from [dek]. The caller must close it when the vault locks.

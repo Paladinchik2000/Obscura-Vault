@@ -143,7 +143,10 @@ fun ObscuraNavHost(navController: NavHostController = rememberNavController()) {
 
             composable(Routes.SETTINGS) {
                 WhenUnlocked {
-                    SettingsScreen(onBack = { navController.popBackStack() })
+                    SettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenBackup = { navController.navigate(Routes.BACKUP) { launchSingleTop = true } }
+                    )
                 }
             }
         }

@@ -11,7 +11,9 @@ import com.obscura.security.BiometricAvailability
 import com.obscura.security.BiometricOutcome
 import com.obscura.security.ChangePinResult
 import com.obscura.security.KeystoreCrypto
+import com.obscura.security.UnlockResult
 import com.obscura.security.VaultLockedException
+import com.obscura.security.VaultReset
 import com.obscura.security.VaultSession
 import com.obscura.ui.auth.PIN_LENGTH
 import com.obscura.ui.common.UiText
@@ -20,7 +22,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * State of the "change PIN" form. The typed PINs live here rather than in the composable, so a
@@ -50,10 +54,24 @@ data class BiometricsState(
         get() = !isEnabled && !isBusy && availability == BiometricAvailability.AVAILABLE
 }
 
+/** Two confirmations: a warning that points at the backup screen, then the PIN. */
+enum class ResetStep { NONE, WARNING, PIN }
+
+data class ResetState(
+    val step: ResetStep = ResetStep.NONE,
+    val pin: String = "",
+    val isBusy: Boolean = false,
+    val error: UiText? = null,
+    val lockedUntil: Long? = null
+) {
+    val canConfirm: Boolean get() = !isBusy && pin.length == PIN_LENGTH && lockedUntil == null
+}
+
 data class SettingsUiState(
     val autoLock: AutoLockOption = AutoLockOption.DEFAULT,
     val pinChange: PinChangeState = PinChangeState(),
     val biometrics: BiometricsState = BiometricsState(),
+    val reset: ResetState = ResetState(),
     val message: UiText? = null
 )
 
@@ -201,6 +219,57 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // --------------------------------------------------------------- full reset
+
+    fun startReset() = updateReset { ResetState(step = ResetStep.WARNING) }
+
+    fun proceedToResetPin() = updateReset {
+        if (it.step == ResetStep.WARNING) ResetState(step = ResetStep.PIN, lockedUntil = repo.lockoutRemaining()) else it
+    }
+
+    fun cancelReset() = updateReset { ResetState() }
+
+    fun onResetPinChanged(value: String) = updateReset { it.copy(pin = value.digits(), error = null) }
+
+    /**
+     * Verifies the PIN through the same counter as unlocking, then erases everything. The wipe
+     * itself is NonCancellable: this ViewModel is cleared the moment the vault locks and the
+     * navigation graph pops, and a half-erased vault would be worse than either end state.
+     */
+    fun confirmReset() {
+        val form = _state.value.reset
+        if (!form.canConfirm) return
+        updateReset { it.copy(isBusy = true, error = null) }
+
+        viewModelScope.launch {
+            val pin = form.pin.toCharArray()
+            val verified = try {
+                repo.unlockWithPin(pin)
+            } finally {
+                pin.fill(Char(0))
+            }
+
+            when (verified) {
+                is UnlockResult.Success -> withContext(NonCancellable) {
+                    VaultReset.wipe(getApplication())
+                    AutoLockSettings(getApplication()).applyToSession()
+                }
+                is UnlockResult.WrongPin -> updateReset {
+                    it.copy(
+                        isBusy = false,
+                        pin = "",
+                        error = uiText(R.string.error_incorrect_pin),
+                        lockedUntil = repo.lockoutRemaining()
+                    )
+                }
+                is UnlockResult.LockedOut -> updateReset {
+                    it.copy(isBusy = false, pin = "", lockedUntil = verified.until)
+                }
+                else -> updateReset { it.copy(isBusy = false, pin = "", error = uiText(R.string.error_unlock_failed)) }
+            }
+        }
+    }
+
     fun clearMessage() = _state.update { it.copy(message = null) }
 
     private fun updatePinChange(transform: (PinChangeState) -> PinChangeState) =
@@ -208,6 +277,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun updateBiometrics(transform: (BiometricsState) -> BiometricsState) =
         _state.update { it.copy(biometrics = transform(it.biometrics)) }
+
+    private fun updateReset(transform: (ResetState) -> ResetState) =
+        _state.update { it.copy(reset = transform(it.reset)) }
 
     private fun String.digits(): String = filter { it.isDigit() }.take(PIN_LENGTH)
 

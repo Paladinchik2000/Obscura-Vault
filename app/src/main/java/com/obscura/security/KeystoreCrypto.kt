@@ -153,6 +153,13 @@ object KeystoreCrypto {
 
     fun hasBiometricKey(): Boolean = runCatching { keyStore.containsAlias(BIO_ALIAS) }.getOrDefault(false)
 
+    /** Only for a full vault reset: without the pepper no existing pin_wrapped_dek can be opened. */
+    fun deletePepperKey() {
+        runCatching { keyStore.deleteEntry(PEPPER_ALIAS) }
+    }
+
+    fun hasPepperKey(): Boolean = runCatching { keyStore.containsAlias(PEPPER_ALIAS) }.getOrDefault(false)
+
     /**
      * Cipher handed to BiometricPrompt.CryptoObject.
      * May throw KeyPermanentlyInvalidatedException if biometrics were re-enrolled.

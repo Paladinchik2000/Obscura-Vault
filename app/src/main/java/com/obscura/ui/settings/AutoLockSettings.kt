@@ -3,6 +3,7 @@ package com.obscura.ui.settings
 import android.content.Context
 import androidx.annotation.StringRes
 import com.obscura.R
+import com.obscura.data.Preferences
 import com.obscura.security.VaultSession
 
 /** How long the vault may stay unlocked in the background. There is deliberately no "never". */
@@ -42,7 +43,7 @@ class AutoLockSettings(context: Context) {
     }
 
     companion object {
-        const val PREFS_NAME = "obscura_settings"
+        const val PREFS_NAME = Preferences.SETTINGS
         const val KEY_TIMEOUT = "auto_lock_ms"
     }
 }

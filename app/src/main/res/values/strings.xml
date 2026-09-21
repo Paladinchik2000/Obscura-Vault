@@ -205,6 +205,16 @@
     <string name="settings_autolock_2m">After 2 minutes</string>
     <string name="settings_autolock_5m">After 5 minutes</string>
     <string name="settings_autolock_15m">After 15 minutes</string>
+    <string name="settings_reset_title">Erase vault</string>
+    <string name="settings_reset_body">Deletes every entry, the vault key and your PIN from this device.</string>
+    <string name="settings_reset_action">Erase vault</string>
+    <string name="settings_reset_warning_title">Erase everything?</string>
+    <string name="settings_reset_warning_message">Your data cannot be recovered. The keys live on this device only, so without a backup file everything is gone for good. Make a backup first if you still need the data.</string>
+    <string name="settings_reset_make_backup">Make a backup</string>
+    <string name="settings_reset_continue">Continue</string>
+    <string name="settings_reset_pin_title">Enter your PIN</string>
+    <string name="settings_reset_pin_message">Last step: everything is erased as soon as the PIN is accepted.</string>
+    <string name="settings_reset_confirm">Erase everything</string>
     <string name="settings_about_title">About</string>
     <string name="settings_version">Version %1$s</string>
     <string name="settings_offline">Obscura works fully offline and has no internet permission.</string>

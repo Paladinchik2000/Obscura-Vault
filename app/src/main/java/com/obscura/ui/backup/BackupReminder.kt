@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.obscura.data.Preferences
 import com.obscura.R
 
 /** Remembers whether the one-time "make a backup" reminder has been shown. */
@@ -17,7 +18,7 @@ interface BackupReminderStore {
 /** Plain SharedPreferences: the flag isn't sensitive and has to be readable while the vault is locked. */
 class PrefsBackupReminderStore(context: Context) : BackupReminderStore {
 
-    private val prefs = context.applicationContext.getSharedPreferences("obscura_ui", Context.MODE_PRIVATE)
+    private val prefs = context.applicationContext.getSharedPreferences(Preferences.UI, Context.MODE_PRIVATE)
 
     override fun wasShown(): Boolean = prefs.getBoolean(KEY_SHOWN, false)
 

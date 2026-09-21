@@ -3,6 +3,7 @@ package com.obscura.security
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
+import com.obscura.data.Preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.crypto.AEADBadTagException
@@ -30,7 +31,7 @@ sealed interface UnlockResult {
 class AuthRepository(context: Context) {
 
     private val prefs: SharedPreferences =
-        context.applicationContext.getSharedPreferences("obscura_auth", Context.MODE_PRIVATE)
+        context.applicationContext.getSharedPreferences(Preferences.AUTH, Context.MODE_PRIVATE)
 
     private companion object {
         const val KEY_SALT = "pin_salt"

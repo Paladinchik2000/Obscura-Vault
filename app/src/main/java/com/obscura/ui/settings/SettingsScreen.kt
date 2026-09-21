@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,12 +67,19 @@ object SettingsTags {
     const val BIO_ACTION = "settings_bio_action"
     const val BIO_DISABLE_CONFIRM = "settings_bio_disable_confirm"
 
+    const val RESET_OPEN = "settings_reset_open"
+    const val RESET_BACKUP = "settings_reset_backup"
+    const val RESET_CONTINUE = "settings_reset_continue"
+    const val RESET_PIN = "settings_reset_pin"
+    const val RESET_CONFIRM = "settings_reset_confirm"
+
     fun autoLock(option: AutoLockOption) = "settings_autolock_" + option.name
 }
 
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onOpenBackup: () -> Unit,
     viewModel: SettingsViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -131,6 +139,19 @@ fun SettingsScreen(
                 )
 
                 AutoLockSection(selected = state.autoLock, onSelect = viewModel::onAutoLockSelected)
+
+                ResetSection(
+                    state = state.reset,
+                    onStart = viewModel::startReset,
+                    onMakeBackup = {
+                        viewModel.cancelReset()
+                        onOpenBackup()
+                    },
+                    onContinue = viewModel::proceedToResetPin,
+                    onPinChange = viewModel::onResetPinChanged,
+                    onConfirm = viewModel::confirmReset,
+                    onCancel = viewModel::cancelReset
+                )
 
                 AboutSection()
             }
@@ -327,6 +348,101 @@ private fun AutoLockSection(selected: AutoLockOption, onSelect: (AutoLockOption)
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ResetSection(
+    state: ResetState,
+    onStart: () -> Unit,
+    onMakeBackup: () -> Unit,
+    onContinue: () -> Unit,
+    onPinChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
+    SettingsSection(title = stringResource(R.string.settings_reset_title)) {
+        Text(stringResource(R.string.settings_reset_body), style = MaterialTheme.typography.bodyMedium)
+        Button(
+            onClick = onStart,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(SettingsTags.RESET_OPEN)
+        ) { Text(stringResource(R.string.settings_reset_action)) }
+    }
+
+    when (state.step) {
+        ResetStep.NONE -> Unit
+
+        ResetStep.WARNING -> AlertDialog(
+            onDismissRequest = onCancel,
+            title = { Text(stringResource(R.string.settings_reset_warning_title)) },
+            text = { Text(stringResource(R.string.settings_reset_warning_message)) },
+            confirmButton = {
+                TextButton(onClick = onMakeBackup, modifier = Modifier.testTag(SettingsTags.RESET_BACKUP)) {
+                    Text(stringResource(R.string.settings_reset_make_backup))
+                }
+            },
+            dismissButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
+                    TextButton(onClick = onContinue, modifier = Modifier.testTag(SettingsTags.RESET_CONTINUE)) {
+                        Text(
+                            stringResource(R.string.settings_reset_continue),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        )
+
+        ResetStep.PIN -> AlertDialog(
+            onDismissRequest = { if (!state.isBusy) onCancel() },
+            title = { Text(stringResource(R.string.settings_reset_pin_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.settings_reset_pin_message))
+                    PinField(
+                        label = stringResource(R.string.settings_pin_current),
+                        value = state.pin,
+                        onValueChange = onPinChange,
+                        enabled = !state.isBusy,
+                        testTag = SettingsTags.RESET_PIN
+                    )
+                    val lockedUntil = state.lockedUntil
+                    val error = state.error
+                    when {
+                        lockedUntil != null -> LockoutText(lockedUntil)
+                        error != null -> Text(
+                            error.asString(),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = onConfirm,
+                    enabled = state.canConfirm,
+                    modifier = Modifier.testTag(SettingsTags.RESET_CONFIRM)
+                ) {
+                    Text(
+                        stringResource(R.string.settings_reset_confirm),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onCancel, enabled = !state.isBusy) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
     }
 }
 
