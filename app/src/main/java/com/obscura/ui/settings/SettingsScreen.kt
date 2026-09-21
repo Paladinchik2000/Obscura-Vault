@@ -1,6 +1,7 @@
 package com.obscura.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -9,57 +10,218 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.obscura.BuildConfig
 import com.obscura.R
+import com.obscura.ui.auth.PIN_LENGTH
+import com.obscura.ui.common.asString
+import kotlinx.coroutines.delay
 
 object SettingsTags {
     const val BACK = "settings_back"
+    const val PIN_OPEN = "settings_pin_open"
+    const val PIN_CURRENT = "settings_pin_current"
+    const val PIN_NEW = "settings_pin_new"
+    const val PIN_CONFIRM = "settings_pin_confirm"
+    const val PIN_SUBMIT = "settings_pin_submit"
 }
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.background) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack, modifier = Modifier.testTag(SettingsTags.BACK)) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.action_back)
-                    )
-                }
-                Text(
-                    stringResource(R.string.settings_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+fun SettingsScreen(
+    onBack: () -> Unit,
+    viewModel: SettingsViewModel = viewModel()
+) {
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
-            AboutSection()
+    LaunchedEffect(state.message) {
+        state.message?.let {
+            snackbarHostState.showSnackbar(it.asString(context))
+            viewModel.clearMessage()
         }
     }
+
+    Surface(color = MaterialTheme.colorScheme.background) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .safeDrawingPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onBack, modifier = Modifier.testTag(SettingsTags.BACK)) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.action_back)
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.settings_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                PinSection(
+                    state = state.pinChange,
+                    onOpen = viewModel::openPinChange,
+                    onCancel = viewModel::cancelPinChange,
+                    onCurrentChange = viewModel::onCurrentPinChanged,
+                    onNewChange = viewModel::onNewPinChanged,
+                    onConfirmChange = viewModel::onConfirmPinChanged,
+                    onSubmit = viewModel::submitPinChange
+                )
+
+                AboutSection()
+            }
+
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+        }
+    }
+}
+
+@Composable
+private fun PinSection(
+    state: PinChangeState,
+    onOpen: () -> Unit,
+    onCancel: () -> Unit,
+    onCurrentChange: (String) -> Unit,
+    onNewChange: (String) -> Unit,
+    onConfirmChange: (String) -> Unit,
+    onSubmit: () -> Unit
+) {
+    SettingsSection(title = stringResource(R.string.settings_pin_title)) {
+        if (!state.isOpen) {
+            Button(
+                onClick = onOpen,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(SettingsTags.PIN_OPEN)
+            ) { Text(stringResource(R.string.settings_pin_change)) }
+            return@SettingsSection
+        }
+
+        PinField(
+            label = stringResource(R.string.settings_pin_current),
+            value = state.currentPin,
+            onValueChange = onCurrentChange,
+            enabled = !state.isBusy,
+            testTag = SettingsTags.PIN_CURRENT
+        )
+        PinField(
+            label = stringResource(R.string.settings_pin_new),
+            value = state.newPin,
+            onValueChange = onNewChange,
+            enabled = !state.isBusy,
+            testTag = SettingsTags.PIN_NEW
+        )
+        PinField(
+            label = stringResource(R.string.settings_pin_confirm),
+            value = state.confirmPin,
+            onValueChange = onConfirmChange,
+            enabled = !state.isBusy,
+            testTag = SettingsTags.PIN_CONFIRM
+        )
+
+        val lockedUntil = state.lockedUntil
+        val error = state.error
+        when {
+            lockedUntil != null -> LockoutText(lockedUntil)
+            error != null -> Text(
+                error.asString(),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick = onCancel, enabled = !state.isBusy, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.action_cancel))
+            }
+            Button(
+                onClick = onSubmit,
+                enabled = state.canSubmit,
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag(SettingsTags.PIN_SUBMIT)
+            ) { Text(stringResource(R.string.settings_pin_submit)) }
+        }
+    }
+}
+
+/** Counts down the shared login lockout, so settings shows the same wait as the login screen. */
+@Composable
+private fun LockoutText(lockedUntil: Long) {
+    var remaining by remember(lockedUntil) { mutableLongStateOf(lockedUntil - System.currentTimeMillis()) }
+    LaunchedEffect(lockedUntil) {
+        while (remaining > 0) {
+            delay(1000)
+            remaining = lockedUntil - System.currentTimeMillis()
+        }
+    }
+    Text(
+        stringResource(R.string.login_lockout, (remaining / 1000).coerceAtLeast(0)),
+        color = MaterialTheme.colorScheme.error,
+        style = MaterialTheme.typography.bodySmall
+    )
+}
+
+@Composable
+private fun PinField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    enabled: Boolean,
+    testTag: String
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        supportingText = { Text(stringResource(R.string.settings_pin_hint, PIN_LENGTH)) },
+        singleLine = true,
+        enabled = enabled,
+        visualTransformation = PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(testTag)
+    )
 }
 
 @Composable

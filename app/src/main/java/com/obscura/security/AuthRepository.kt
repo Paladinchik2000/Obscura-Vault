@@ -11,6 +11,14 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 import kotlin.math.min
 
+sealed interface ChangePinResult {
+    data object Success : ChangePinResult
+    data class WrongPin(val attemptsRemaining: Int) : ChangePinResult
+    data class LockedOut(val until: Long) : ChangePinResult
+    data object SameAsCurrent : ChangePinResult
+    data class Error(val cause: Throwable) : ChangePinResult
+}
+
 sealed interface UnlockResult {
     data class Success(val dek: SecretKey) : UnlockResult
     data class WrongPin(val attemptsRemaining: Int) : UnlockResult
@@ -84,6 +92,58 @@ class AuthRepository(context: Context) {
             UnlockResult.Error(e)
         }
     }
+
+    // ------------------------------------------------------------ change pin
+
+    /**
+     * Re-wraps the existing DEK with a KEK derived from [newPin] and a fresh salt. The DEK itself,
+     * the database and the biometric blob are untouched, so an open session stays valid.
+     *
+     * The current PIN is verified through the same failure counter and lockout as [unlockWithPin]:
+     * otherwise this screen would be a way around the brute-force protection.
+     */
+    suspend fun changePin(currentPin: CharArray, newPin: CharArray): ChangePinResult =
+        withContext(Dispatchers.Default) {
+            lockoutRemaining()?.let { return@withContext ChangePinResult.LockedOut(it) }
+
+            val salt = prefs.getString(KEY_SALT, null)?.let { Base64.decode(it, Base64.NO_WRAP) }
+                ?: return@withContext ChangePinResult.Error(IllegalStateException("Vault not initialized"))
+            val blob = prefs.getString(KEY_PIN_BLOB, null)?.let { EncryptedBlob.deserialize(it) }
+                ?: return@withContext ChangePinResult.Error(IllegalStateException("Corrupt vault header"))
+
+            val dekBytes = try {
+                KeystoreCrypto.decrypt(KeystoreCrypto.deriveKekFromPin(currentPin, salt), blob)
+            } catch (e: AEADBadTagException) {
+                // Wrong current PIN counts as a failed attempt, exactly like a failed unlock.
+                return@withContext ChangePinResult.WrongPin(registerFailure())
+            } catch (e: Exception) {
+                return@withContext ChangePinResult.Error(e)
+            }
+
+            try {
+                if (currentPin.contentEquals(newPin)) return@withContext ChangePinResult.SameAsCurrent
+
+                val newSalt = KeystoreCrypto.randomSalt()
+                val newKek = KeystoreCrypto.deriveKekFromPin(newPin, newSalt)
+                val newBlob = KeystoreCrypto.encrypt(newKek, dekBytes)
+
+                // One synchronous commit(): salt and blob must land together. If the process dies
+                // here, the file holds either both old values or both new ones, never a mix.
+                val written = prefs.edit()
+                    .putString(KEY_SALT, Base64.encodeToString(newSalt, Base64.NO_WRAP))
+                    .putString(KEY_PIN_BLOB, newBlob.serialize())
+                    .putInt(KEY_FAILED, 0)
+                    .putLong(KEY_LOCKED_UNTIL, 0L)
+                    .commit()
+
+                if (written) ChangePinResult.Success
+                else ChangePinResult.Error(IllegalStateException("Could not write the new PIN"))
+            } catch (e: Exception) {
+                ChangePinResult.Error(e)
+            } finally {
+                dekBytes.fill(0)
+            }
+        }
 
     // ---------------------------------------------------- biometric enroll
 

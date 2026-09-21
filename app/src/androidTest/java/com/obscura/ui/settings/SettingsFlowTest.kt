@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -15,6 +17,7 @@ import com.obscura.MainActivity
 import com.obscura.R
 import com.obscura.security.VaultSession
 import com.obscura.ui.dashboard.DashboardTags
+import com.obscura.ui.detail.EntryTags
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -30,6 +33,7 @@ class SettingsFlowTest {
     private companion object {
         const val DATABASE_NAME = "obscura_encrypted_vault.db"
         const val PIN = "123456"
+        const val NEW_PIN = "654321"
         const val TIMEOUT_MS = 20_000L
         const val TAG = "SettingsFlowTest"
         val PREFERENCE_FILES = listOf("obscura_auth", "obscura_ui", "obscura_settings")
@@ -66,7 +70,53 @@ class SettingsFlowTest {
         assertTrue(compose.onAllNodesWithText(string(R.string.settings_title)).fetchSemanticsNodes().isEmpty())
     }
 
+    @Test
+    fun changingThePinKeepsEntriesAndRejectsTheOldPin() = withMainActivity {
+        createVault()
+        addEntry(title = "GitHub test", secret = "s3cret-Passw0rd!")
+
+        compose.onNodeWithTag(DashboardTags.SETTINGS).performClick()
+        waitForTag(SettingsTags.PIN_OPEN)
+        compose.onNodeWithTag(SettingsTags.PIN_OPEN).performClick()
+
+        waitForTag(SettingsTags.PIN_CURRENT)
+        compose.onNodeWithTag(SettingsTags.PIN_CURRENT).performTextInput(PIN)
+        compose.onNodeWithTag(SettingsTags.PIN_NEW).performTextInput(NEW_PIN)
+        compose.onNodeWithTag(SettingsTags.PIN_CONFIRM).performTextInput(NEW_PIN)
+        compose.onNodeWithTag(SettingsTags.PIN_SUBMIT).performScrollTo().performClick()
+        waitForText(string(R.string.settings_pin_changed))
+
+        // The vault stays open: changing the PIN re-wraps the DEK, it does not replace it.
+        assertTrue(VaultSession.isUnlocked.value)
+
+        VaultSession.requestLock()
+        waitForText(string(R.string.login_subtitle_unlock))
+
+        enterPin(PIN)
+        waitForText(string(R.string.error_incorrect_pin))
+
+        enterPin(NEW_PIN)
+        waitForText("GitHub test")
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    private fun addEntry(title: String, secret: String) {
+        compose.onNodeWithText(string(R.string.dashboard_empty_vault_action)).performClick()
+        waitForTag(EntryTags.TITLE)
+        compose.onNodeWithTag(EntryTags.TITLE).performTextInput(title)
+        compose.onNodeWithTag(EntryTags.SECRET).performTextInput(secret)
+        compose.onNodeWithTag(EntryTags.SAVE).performScrollTo().performClick()
+
+        // The first entry raises the one-time backup reminder.
+        waitForText(string(R.string.backup_reminder_message))
+        compose.onNodeWithText(string(R.string.action_later)).performClick()
+        waitUntilGone(string(R.string.backup_reminder_message))
+    }
+
+    private fun waitUntilGone(text: String) {
+        compose.waitUntil(TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty() }
+    }
 
     /** See VaultNavigationTest: a body failure is logged before close(), which can crash the process. */
     private fun withMainActivity(body: (ActivityScenario<MainActivity>) -> Unit) {

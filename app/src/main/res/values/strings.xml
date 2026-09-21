@@ -176,6 +176,16 @@
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_open">Settings</string>
+    <string name="settings_pin_title">PIN</string>
+    <string name="settings_pin_change">Change PIN</string>
+    <string name="settings_pin_hint">%1$d digits</string>
+    <string name="settings_pin_current">Current PIN</string>
+    <string name="settings_pin_new">New PIN</string>
+    <string name="settings_pin_confirm">Confirm new PIN</string>
+    <string name="settings_pin_submit">Save new PIN</string>
+    <string name="settings_pin_changed">PIN changed</string>
+    <string name="error_pin_same_as_current">The new PIN must be different from the current one</string>
+    <string name="error_pin_change_failed">Could not change the PIN</string>
     <string name="settings_about_title">About</string>
     <string name="settings_version">Version %1$s</string>
     <string name="settings_offline">Obscura works fully offline and has no internet permission.</string>
