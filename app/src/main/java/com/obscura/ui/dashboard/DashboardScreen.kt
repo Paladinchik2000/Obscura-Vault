@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -79,6 +80,7 @@ object DashboardTags {
     const val ADD = "dashboard_add"
     const val LOCK = "dashboard_lock"
     const val BACKUP = "dashboard_backup"
+    const val SETTINGS = "dashboard_settings"
 }
 
 @Composable
@@ -96,6 +98,7 @@ fun DashboardScreen(
     onToggleFavorite: (VaultEntity) -> Unit,
     onLockVault: () -> Unit,
     onOpenBackup: () -> Unit,
+    onOpenSettings: () -> Unit,
     onClearToast: () -> Unit,
     showBackupReminder: Boolean = false,
     onBackupReminderHandled: () -> Unit = {}
@@ -175,6 +178,24 @@ fun DashboardScreen(
                 }
 
                 Row {
+                    // Settings Button
+                    IconButton(
+                        onClick = onOpenSettings,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(CardBackground)
+                            .border(1.dp, CardBorder, CircleShape)
+                            .testTag(DashboardTags.SETTINGS)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings_open),
+                            tint = TextPrimary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     // Backup Button
                     IconButton(
                         onClick = onOpenBackup,

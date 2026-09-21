@@ -173,6 +173,13 @@
     <string name="backup_reminder_message">Make a backup. Your keys are tied to this device: if you lose the phone or uninstall the app, nothing can bring your data back.</string>
     <string name="backup_reminder_action">Make a backup</string>
 
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_open">Settings</string>
+    <string name="settings_about_title">About</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_offline">Obscura works fully offline and has no internet permission.</string>
+
     <!-- Autofill -->
     <string name="autofill_default_entry_title">Obscura item</string>
     <string name="autofill_prompt_title">Obscura Autofill</string>

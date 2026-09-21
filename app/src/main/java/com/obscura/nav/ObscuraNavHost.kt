@@ -25,6 +25,7 @@ import com.obscura.ui.backup.BackupScreen
 import com.obscura.ui.backup.PrefsBackupReminderStore
 import com.obscura.ui.dashboard.DashboardScreen
 import com.obscura.ui.detail.AddEditVaultScreen
+import com.obscura.ui.settings.SettingsScreen
 import com.obscura.ui.viewmodel.EditorState
 import com.obscura.ui.viewmodel.VaultViewModel
 
@@ -37,6 +38,7 @@ object Routes {
     const val ENTRY_NEW = "entry/new"
     const val ENTRY_EDIT = "entry/edit/{id}"
     const val BACKUP = "backup"
+    const val SETTINGS = "settings"
 
     fun editEntry(id: String) = "entry/edit/${Uri.encode(id)}"
 }
@@ -102,6 +104,7 @@ fun ObscuraNavHost(navController: NavHostController = rememberNavController()) {
                         onToggleFavorite = viewModel::toggleFavorite,
                         onLockVault = { VaultSession.requestLock() },
                         onOpenBackup = { navController.navigate(Routes.BACKUP) { launchSingleTop = true } },
+                        onOpenSettings = { navController.navigate(Routes.SETTINGS) { launchSingleTop = true } },
                         onClearToast = viewModel::clearToast,
                         showBackupReminder = state.showBackupReminder,
                         onBackupReminderHandled = viewModel::onBackupReminderHandled
@@ -132,6 +135,12 @@ fun ObscuraNavHost(navController: NavHostController = rememberNavController()) {
             composable(Routes.BACKUP) {
                 WhenUnlocked {
                     BackupScreen(onBack = { navController.popBackStack() })
+                }
+            }
+
+            composable(Routes.SETTINGS) {
+                WhenUnlocked {
+                    SettingsScreen(onBack = { navController.popBackStack() })
                 }
             }
         }
