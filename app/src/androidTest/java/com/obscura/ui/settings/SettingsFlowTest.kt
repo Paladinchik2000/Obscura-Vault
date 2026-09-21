@@ -97,7 +97,8 @@ class SettingsFlowTest {
         waitForText(string(R.string.login_subtitle_unlock))
 
         enterPin(PIN)
-        waitForText(string(R.string.error_incorrect_pin))
+        // The login screen appends the remaining attempts to the message.
+        waitForText(string(R.string.error_incorrect_pin), substring = true)
 
         enterPin(NEW_PIN)
         waitForText("GitHub test")
@@ -169,9 +170,9 @@ class SettingsFlowTest {
 
     private fun string(@StringRes id: Int, vararg args: Any): String = context.getString(id, *args)
 
-    private fun waitForText(text: String) {
+    private fun waitForText(text: String, substring: Boolean = false) {
         compose.waitUntil(TIMEOUT_MS) {
-            compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty()
         }
     }
 
