@@ -94,6 +94,17 @@ AutofillService в приложении пока нет, `AutofillBiometricAuthA
 `android:permission="android.permission.BIND_AUTOFILL_SERVICE"` у `<service>`,
 это не `uses-permission`.
 
+## Автоблокировка
+
+Наблюдатель жизненного цикла живёт в `ObscuraApplication` на
+`ProcessLifecycleOwner`, а не на `MainActivity`: хранилище может быть открыто
+из автозаполнения, когда `MainActivity` вообще не запускалась. При уходе в
+фон блокировка планируется (`VaultSession.onAppBackgrounded`), а не
+проверяется при возврате, — иначе брошенное в фоне хранилище оставалось бы
+открытым до следующего запуска. `ProcessLifecycleOwner` шлёт `ON_STOP` с
+задержкой около 700 мс, поэтому «Immediately» на практике значит «почти
+сразу», а не «в ту же миллисекунду».
+
 ## Внешние Activity и автоблокировка
 
 Системный экран, который мы запускаем сами за результатом (SAF-пикеры

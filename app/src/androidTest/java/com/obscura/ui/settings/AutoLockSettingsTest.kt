@@ -32,6 +32,8 @@ class AutoLockSettingsTest {
 
     @After
     fun tearDown() {
+        // Other tests in this process expect the app to count as being on screen.
+        VaultSession.onAppForegrounded()
         runBlocking { VaultSession.lock() }
         prefs.edit().clear().commit()
         context.deleteDatabase("obscura_encrypted_vault.db")
@@ -66,13 +68,30 @@ class AutoLockSettingsTest {
 
         AutoLockSettings(context).option = AutoLockOption.MINUTES_15
         VaultSession.touch()
-        VaultSession.lockIfImmediate()
+        VaultSession.onAppBackgrounded()
         assertTrue("a 15 minute timeout must not lock on its own", VaultSession.isUnlocked.value)
 
         AutoLockSettings(context).option = AutoLockOption.IMMEDIATELY
-        VaultSession.lockIfImmediate()
+        VaultSession.onAppBackgrounded()
 
         withTimeout(10_000) { VaultSession.isUnlocked.first { !it } }
         assertFalse(VaultSession.isUnlocked.value)
+    }
+
+    /**
+     * The vault must close on time even if the user never comes back: after an autofill unlock
+     * there may be no activity of ours to return to at all.
+     */
+    @Test
+    fun theTimeoutLocksWhileTheAppIsStillInTheBackground() = runBlocking {
+        VaultSession.unlock(context, KeystoreCrypto.generateDek())
+        VaultSession.idleTimeoutMs = 1_500L
+
+        VaultSession.touch()
+        VaultSession.onAppBackgrounded()
+        assertTrue("must not lock before the timeout", VaultSession.isUnlocked.value)
+
+        withTimeout(15_000) { VaultSession.isUnlocked.first { !it } }
+        assertFalse("the timeout must fire without the app coming back", VaultSession.isUnlocked.value)
     }
 }

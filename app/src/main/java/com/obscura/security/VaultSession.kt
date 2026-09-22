@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -76,8 +77,11 @@ object VaultSession {
      */
     @Volatile private var awaitingOwnResultSince: Long = 0L
 
-    /** Locks once the grace below runs out, so an abandoned picker cannot hold the vault open. */
-    private var graceLockJob: Job? = null
+    /** Pending background lock: the timeout, or the picker grace when that is longer. */
+    private var autoLockJob: Job? = null
+
+    /** Whether any activity of ours is on screen; driven by ProcessLifecycleOwner. */
+    @Volatile private var inForeground: Boolean = true
 
     /** How long a system screen we started may hold off the auto-lock. */
     @VisibleForTesting
@@ -106,6 +110,8 @@ object VaultSession {
                 closeSession()
                 session = Session(key, database)
                 touch()
+                // Unlocking from autofill leaves the app in the background: the clock starts now.
+                if (!inForeground) scheduleAutoLock()
                 _isUnlocked.value = true
             }
         }
@@ -144,9 +150,14 @@ object VaultSession {
 
     fun finishedOwnActivityResult() {
         awaitingOwnResultSince = 0L
-        graceLockJob?.cancel()
-        graceLockJob = null
         touch()
+        // The app is back on screen with the result; any pending background lock is stale.
+        if (inForeground) {
+            autoLockJob?.cancel()
+            autoLockJob = null
+        } else {
+            scheduleAutoLock()
+        }
     }
 
     /** Milliseconds left of the grace, or 0 when nothing of ours is open or it has run out. */
@@ -156,29 +167,26 @@ object VaultSession {
         return (since + ownResultGraceMs - System.currentTimeMillis()).coerceAtLeast(0L)
     }
 
-    /** With the "immediately" setting there is no grace period: lock as the app leaves the screen. */
-    fun lockIfImmediate() {
-        if (session == null || idleTimeoutMs > 0L) return
-
-        val remaining = ownResultGraceRemaining()
-        if (remaining == 0L) {
-            requestLock()
-            return
-        }
-
-        // Our own picker is open: hold the lock until it returns, but never indefinitely.
-        graceLockJob?.cancel()
-        graceLockJob = controlScope.launch {
-            delay(remaining)
-            if (ownResultGraceRemaining() == 0L && awaitingOwnResultSince != 0L) {
-                awaitingOwnResultSince = 0L
-                lock()
-            }
-        }
+    /**
+     * The whole app went to the background (ProcessLifecycleOwner, not a single activity): the
+     * vault may have been opened from autofill without MainActivity ever starting.
+     *
+     * The lock is scheduled here rather than checked on the way back, so a vault left in the
+     * background really does close on time instead of waiting for the user to return.
+     */
+    fun onAppBackgrounded() {
+        inForeground = false
+        touch()
+        scheduleAutoLock()
     }
 
-    fun lockIfIdle() {
+    /** The app is on screen again: nothing should lock behind the user's back. */
+    fun onAppForegrounded() {
+        inForeground = true
+        autoLockJob?.cancel()
+        autoLockJob = null
         if (session == null) return
+
         // Coming back from our own picker is not idleness, whatever the timeout is.
         if (ownResultGraceRemaining() > 0L) {
             touch()
@@ -187,11 +195,31 @@ object VaultSession {
         if (System.currentTimeMillis() - lastActivityAt > idleTimeoutMs) requestLock()
     }
 
+    private fun scheduleAutoLock() {
+        if (session == null) return
+        autoLockJob?.cancel()
+        autoLockJob = controlScope.launch {
+            while (isActive) {
+                // A picker of ours holds the lock off past the timeout, but only for its grace.
+                val wait = maxOf(
+                    idleTimeoutMs - (System.currentTimeMillis() - lastActivityAt),
+                    ownResultGraceRemaining()
+                )
+                if (wait <= 0L) break
+                delay(wait)
+            }
+            if (isActive && !inForeground) {
+                awaitingOwnResultSince = 0L
+                lock()
+            }
+        }
+    }
+
     /** Caller holds [transitions]. */
     private suspend fun closeSession() {
         awaitingOwnResultSince = 0L
-        graceLockJob?.cancel()
-        graceLockJob = null
+        autoLockJob?.cancel()
+        autoLockJob = null
         val current = session ?: return
         // New work is refused from here on; work already running keeps its own session reference.
         session = null

@@ -4,8 +4,6 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -46,22 +44,8 @@ object Routes {
 @Composable
 fun ObscuraNavHost(navController: NavHostController = rememberNavController()) {
 
-    // Auto-lock: re-lock when the app leaves the foreground past the idle window.
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_STOP -> {
-                    VaultSession.touch()
-                    VaultSession.lockIfImmediate()
-                }
-                Lifecycle.Event.ON_START -> VaultSession.lockIfIdle()
-                else -> Unit
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
+    // Auto-lock lives in ObscuraApplication on ProcessLifecycleOwner: it must not depend on
+    // this screen being the one that opened the vault.
 
     val isUnlocked by VaultSession.isUnlocked.collectAsState()
 
