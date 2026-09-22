@@ -1,0 +1,116 @@
+package com.obscura.autofill
+
+import android.app.PendingIntent
+import android.content.Intent
+import android.os.Build
+import android.os.CancellationSignal
+import android.service.autofill.AutofillService
+import android.service.autofill.FillCallback
+import android.service.autofill.FillRequest
+import android.service.autofill.SaveCallback
+import android.service.autofill.SaveRequest
+import androidx.annotation.Keep
+import androidx.annotation.RequiresApi
+import com.obscura.BuildConfig
+import com.obscura.autofill.AutofillResponses.Companion.autofillIds
+import com.obscura.autofill.match.CallerIdentity
+import com.obscura.security.AuthRepository
+import com.obscura.security.VaultLockedException
+import com.obscura.security.VaultSession
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+
+/**
+ * Fills login forms in other apps.
+ *
+ * Nothing is offered unless the entry was linked to this app on purpose, or its own site matches
+ * the site a browser we trust says it is showing. A locked vault answers with an authentication
+ * step instead of data: no secret leaves the app before the user has unlocked it.
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+@Keep
+class ObscuraAutofillService : AutofillService() {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    override fun onFillRequest(
+        request: FillRequest,
+        cancellationSignal: CancellationSignal,
+        callback: FillCallback
+    ) {
+        val structure = request.fillContexts.lastOrNull()?.structure
+        if (structure == null) {
+            callback.onSuccess(null)
+            return
+        }
+
+        val callerPackage = structure.activityComponent?.packageName
+        // Never offer Obscura's own secrets to Obscura: the vault screens are not a fill target.
+        if (callerPackage == null || callerPackage == BuildConfig.APPLICATION_ID) {
+            callback.onSuccess(null)
+            return
+        }
+
+        // Without a vault there is nothing to unlock; the first PIN is created in the app itself.
+        if (!AuthRepository(this).isVaultInitialized) {
+            callback.onSuccess(null)
+            return
+        }
+
+        val form = AutofillFormParser.parse(structure)
+        val identity = CallerIdentity.of(this, callerPackage)
+        if (!form.isFillable || identity == null) {
+            callback.onSuccess(null)
+            return
+        }
+
+        val responses = AutofillResponses(this)
+
+        if (!VaultSession.isUnlocked.value) {
+            callback.onSuccess(responses.lockedResponse(form, unlockPendingIntent(form, callerPackage)))
+            return
+        }
+
+        val target = responses.targetFor(identity, form)
+        val job = scope.launch {
+            val response = try {
+                responses.datasetsResponse(responses.matchingEntries(target), form)
+            } catch (e: VaultLockedException) {
+                // Locked between the check and the query: ask for the unlock instead.
+                responses.lockedResponse(form, unlockPendingIntent(form, callerPackage))
+            }
+            if (!cancellationSignal.isCanceled) callback.onSuccess(response)
+        }
+        cancellationSignal.setOnCancelListener { job.cancel() }
+    }
+
+    /** Saving new logins is a separate task; answering keeps the framework from waiting. */
+    override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
+        callback.onSuccess()
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
+    }
+
+    private fun unlockPendingIntent(form: ParsedForm, callerPackage: String): PendingIntent {
+        val intent = Intent(this, AutofillUnlockActivity::class.java).apply {
+            putExtra(AutofillUnlockActivity.EXTRA_CALLER_PACKAGE, callerPackage)
+            putExtra(AutofillUnlockActivity.EXTRA_USERNAME_ID, form.usernameId)
+            putExtra(AutofillUnlockActivity.EXTRA_PASSWORD_ID, form.passwordId)
+            putExtra(AutofillUnlockActivity.EXTRA_WEB_DOMAIN, form.webDomain)
+        }
+        return PendingIntent.getActivity(
+            this,
+            form.autofillIds().contentHashCode(),
+            intent,
+            // Immutable: the screen is given everything it needs here, and nothing else may
+            // rewrite this intent on its way through the system.
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+}

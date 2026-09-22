@@ -220,6 +220,8 @@
     <string name="settings_offline">Obscura works fully offline and has no internet permission.</string>
 
     <!-- Autofill -->
+    <string name="autofill_unlock_title">Unlock Obscura</string>
+    <string name="autofill_unlock_subtitle">Your vault is locked</string>
     <string name="autofill_default_entry_title">Obscura item</string>
     <string name="autofill_prompt_title">Obscura Autofill</string>
     <string name="autofill_prompt_subtitle">Authenticate to autofill %1$s</string>

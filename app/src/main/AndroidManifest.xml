@@ -30,6 +30,31 @@
             </intent-filter>
         </activity>
 
+        <!-- Unlock step of an autofill request: the app's own PIN or fingerprint, never the
+             device PIN. Started only through our own PendingIntent, so it stays unexported. -->
+        <activity
+            android:name=".autofill.AutofillUnlockActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Obscura"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- BIND_AUTOFILL_SERVICE is the attribute of the service, not a uses-permission:
+             it lets only the system bind to it. -->
+        <service
+            android:name=".autofill.ObscuraAutofillService"
+            android:permission="android.permission.BIND_AUTOFILL_SERVICE"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.service.autofill.AutofillService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.autofill"
+                android:resource="@xml/autofill_service" />
+        </service>
+
         <!-- Transparent Jetpack Compose Activity for Autofill Biometric Authentication -->
         <activity
             android:name=".autofill.AutofillBiometricAuthActivity"
