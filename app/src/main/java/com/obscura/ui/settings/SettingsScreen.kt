@@ -1,5 +1,7 @@
 package com.obscura.ui.settings
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -56,7 +59,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.obscura.BuildConfig
 import com.obscura.R
 import com.obscura.ui.auth.PIN_LENGTH
+import androidx.core.net.toUri
 import com.obscura.ui.common.asString
+import com.obscura.ui.common.rememberVaultResultLauncher
 import com.obscura.ui.common.labelRes
 import kotlinx.coroutines.delay
 
@@ -71,6 +76,8 @@ object SettingsTags {
     const val BIO_ACTION = "settings_bio_action"
     const val BIO_DISABLE_CONFIRM = "settings_bio_disable_confirm"
 
+    const val AUTOFILL_STATE = "settings_autofill_state"
+    const val AUTOFILL_ACTION = "settings_autofill_action"
     const val RESET_OPEN = "settings_reset_open"
     const val RESET_BACKUP = "settings_reset_backup"
     const val RESET_CONTINUE = "settings_reset_continue"
@@ -91,7 +98,16 @@ fun SettingsScreen(
     val context = LocalContext.current
     val activity = context as FragmentActivity
 
-    LaunchedEffect(Unit) { viewModel.refreshBiometrics(activity) }
+    LaunchedEffect(Unit) {
+        viewModel.refreshBiometrics(activity)
+        viewModel.refreshAutofill()
+    }
+
+    // The system autofill screen is an external activity: going through the vault launcher keeps
+    // "Immediately" auto-lock from closing the vault while it is open (see CLAUDE.md).
+    val openAutofillSettings = rememberVaultResultLauncher(ActivityResultContracts.StartActivityForResult()) {
+        viewModel.refreshAutofill()
+    }
 
     // Biometric availability and the shared PIN lockout can both change while we are away.
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -100,6 +116,7 @@ fun SettingsScreen(
             if (event == Lifecycle.Event.ON_START) {
                 viewModel.refreshBiometrics(activity)
                 viewModel.refreshLockout()
+                viewModel.refreshAutofill()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -153,6 +170,16 @@ fun SettingsScreen(
                     onRequestDisable = viewModel::requestDisableBiometrics,
                     onCancelDisable = viewModel::cancelDisableBiometrics,
                     onConfirmDisable = viewModel::confirmDisableBiometrics
+                )
+
+                AutofillSection(
+                    state = state.autofill,
+                    onOpenSystemSettings = {
+                        openAutofillSettings(
+                            Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE)
+                                .setData("package:${context.packageName}".toUri())
+                        )
+                    }
                 )
 
                 AutoLockSection(selected = state.autoLock, onSelect = viewModel::onAutoLockSelected)
@@ -460,6 +487,30 @@ private fun ResetSection(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun AutofillSection(state: AutofillState, onOpenSystemSettings: () -> Unit) {
+    // Autofill arrived in API 26; on 24 and 25 there is nothing to offer.
+    if (!state.isSupported) return
+
+    SettingsSection(title = stringResource(R.string.settings_autofill_title)) {
+        Text(
+            stringResource(
+                if (state.isEnabled) R.string.settings_autofill_enabled
+                else R.string.settings_autofill_disabled
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.testTag(SettingsTags.AUTOFILL_STATE)
+        )
+        Button(
+            onClick = onOpenSystemSettings,
+            enabled = !state.isEnabled,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(SettingsTags.AUTOFILL_ACTION)
+        ) { Text(stringResource(R.string.settings_autofill_action)) }
     }
 }
 

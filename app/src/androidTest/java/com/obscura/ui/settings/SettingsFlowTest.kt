@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -38,6 +39,7 @@ class SettingsFlowTest {
         const val TIMEOUT_MS = 20_000L
         const val TAG = "SettingsFlowTest"
         val PREFERENCE_FILES = listOf("obscura_auth", "obscura_ui", "obscura_settings")
+        const val AUTOFILL_COMPONENT = "com.obscura/com.obscura.autofill.ObscuraAutofillService"
     }
 
     @get:Rule
@@ -45,11 +47,23 @@ class SettingsFlowTest {
 
     private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
 
+    private var previousAutofillService: String? = null
+
     @Before
-    fun freshInstall() = resetAppState()
+    fun freshInstall() {
+        previousAutofillService = shell("settings get secure autofill_service").trim()
+        resetAppState()
+    }
 
     @After
     fun tearDown() {
+        // Put the device's own autofill service back, whatever it was.
+        val previous = previousAutofillService
+        if (previous.isNullOrEmpty() || previous == "null") {
+            shell("settings delete secure autofill_service")
+        } else {
+            shell("settings put secure autofill_service $previous")
+        }
         resetAppState()
         VaultSession.idleTimeoutMs = AutoLockOption.DEFAULT.millis
     }
@@ -118,7 +132,30 @@ class SettingsFlowTest {
         assertEquals(AutoLockOption.SECONDS_30.millis, prefs.getLong(AutoLockSettings.KEY_TIMEOUT, -1L))
     }
 
+    @Test
+    fun theAutofillSectionFollowsTheSystemSetting() = withMainActivity { scenario ->
+        createVault()
+        compose.onNodeWithTag(DashboardTags.SETTINGS).performClick()
+        waitForTag(SettingsTags.AUTOFILL_STATE)
+        waitForText(string(R.string.settings_autofill_disabled))
+
+        // Turning Obscura on from outside is what the button leads to; the screen must notice.
+        shell("settings put secure autofill_service $AUTOFILL_COMPONENT")
+        scenario.moveToState(Lifecycle.State.CREATED)
+        scenario.moveToState(Lifecycle.State.RESUMED)
+
+        waitForText(string(R.string.settings_autofill_enabled))
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    /** Runs a shell command as the shell user, which may write secure settings. */
+    private fun shell(command: String): String =
+        InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command).use { descriptor ->
+            java.io.FileInputStream(descriptor.fileDescriptor).use { stream ->
+                stream.readBytes().decodeToString()
+            }
+        }
 
     private fun addEntry(title: String, secret: String) {
         compose.onNodeWithText(string(R.string.dashboard_empty_vault_action)).performClick()

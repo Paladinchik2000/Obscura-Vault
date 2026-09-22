@@ -198,6 +198,10 @@
     <string name="settings_biometrics_disable_message">The protected copy of your vault key and its Keystore key are deleted. You can turn it on again later with your PIN.</string>
     <string name="settings_biometrics_enabled_message">Biometric unlock enabled</string>
     <string name="settings_biometrics_disabled_message">Biometric unlock turned off</string>
+    <string name="settings_autofill_title">Autofill</string>
+    <string name="settings_autofill_enabled">Obscura is your autofill service</string>
+    <string name="settings_autofill_disabled">Obscura is not your autofill service</string>
+    <string name="settings_autofill_action">Set Obscura as autofill service</string>
     <string name="settings_autolock_title">Auto-lock</string>
     <string name="settings_autolock_immediately">Immediately in the background</string>
     <string name="settings_autolock_30s">After 30 seconds</string>

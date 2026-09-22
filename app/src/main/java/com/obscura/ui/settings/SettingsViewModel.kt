@@ -1,6 +1,8 @@
 package com.obscura.ui.settings
 
 import android.app.Application
+import android.os.Build
+import android.view.autofill.AutofillManager
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -75,11 +77,20 @@ data class ResetState(
     val canConfirm: Boolean get() = !isBusy && pin.length == PIN_LENGTH && lockedUntil == null
 }
 
+/**
+ * Whether this device has autofill at all (API 26+) and whether Obscura is the chosen service.
+ */
+data class AutofillState(
+    val isSupported: Boolean = false,
+    val isEnabled: Boolean = false
+)
+
 data class SettingsUiState(
     val autoLock: AutoLockOption = AutoLockOption.DEFAULT,
     val pinChange: PinChangeState = PinChangeState(),
     val biometrics: BiometricsState = BiometricsState(),
     val reset: ResetState = ResetState(),
+    val autofill: AutofillState = AutofillState(),
     val message: UiText? = null
 )
 
@@ -197,6 +208,26 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
         }
+    }
+
+    // ------------------------------------------------------------------ autofill
+
+    /**
+     * Reads the state from AutofillManager; call when the screen starts and after coming back
+     * from the system settings screen.
+     */
+    fun refreshAutofill() {
+        val manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getApplication<Application>().getSystemService(AutofillManager::class.java)
+        } else {
+            null
+        }
+        val state = if (manager == null || !manager.isAutofillSupported) {
+            AutofillState(isSupported = false, isEnabled = false)
+        } else {
+            AutofillState(isSupported = true, isEnabled = manager.hasEnabledAutofillServices())
+        }
+        _state.update { it.copy(autofill = state) }
     }
 
     // ------------------------------------------------------------------ auto-lock
