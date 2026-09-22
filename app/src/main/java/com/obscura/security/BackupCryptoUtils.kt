@@ -39,7 +39,13 @@ class UnsupportedBackupVersionException(val found: Int, val supported: Int) :
 object BackupCryptoUtils {
 
     /** Bump on any change to the file layout, KDF parameters or JSON schema of backups. */
-    const val FORMAT_VERSION = 1
+    const val FORMAT_VERSION = 2
+
+    /**
+     * Versions this build can read. Version 2 added the links between entries and the apps or
+     * sites they belong to; version 1 files simply have none.
+     */
+    val SUPPORTED_FORMAT_VERSIONS = setOf(1, 2)
 
     const val HEADER_SIZE_BYTES = 6
     const val PBKDF2_ITERATIONS = 600_000
@@ -83,7 +89,9 @@ object BackupCryptoUtils {
     @JvmStatic
     fun decryptPayload(encryptedData: ByteArray, password: CharArray): String {
         val version = readFormatVersion(encryptedData)
-        if (version != FORMAT_VERSION) throw UnsupportedBackupVersionException(version, FORMAT_VERSION)
+        if (version !in SUPPORTED_FORMAT_VERSIONS) {
+            throw UnsupportedBackupVersionException(version, FORMAT_VERSION)
+        }
 
         val minLength = HEADER_SIZE_BYTES + SALT_SIZE_BYTES + IV_SIZE_BYTES + TAG_LENGTH_BITS / 8
         if (encryptedData.size < minLength) throw BackupFormatException("Backup file is truncated")

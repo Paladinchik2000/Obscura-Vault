@@ -44,6 +44,13 @@ Keystore и без DEK. Это выглядит непоследовательн
 Заголовок открытый и передаётся в GCM как AAD. Три разных исключения:
 `UnsupportedBackupVersionException`, `BackupFormatException`, `SecurityException`.
 
+Текущая версия формата — **2**. Читаются версии **1 и 2**
+(`BackupCryptoUtils.SUPPORTED_FORMAT_VERSIONS`), пишется всегда текущая.
+Версия 2 добавила массив `links` — связки записей с приложениями и сайтами
+для автозаполнения; в файлах версии 1 их просто нет. Связка, указывающая на
+запись, которой нет в файле, при импорте отбрасывается: внешний ключ не дал
+бы её записать.
+
 ## Манифест
 
 ### Ориентация
@@ -72,12 +79,15 @@ Android 16 (targetSdk 36) на больших экранах игнорируе�
 
 - `USE_BIOMETRIC`
 - `USE_FINGERPRINT` (maxSdkVersion 28)
-- `PROVIDE_CREDENTIALS`
 - `com.obscura.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` от androidx.core —
   signature-уровня, объявлено и запрошено (две записи).
 
 `INTERNET` нет и не должно появиться: приложение офлайновое. После
 изменения зависимостей проверяй список заново.
+
+`PROVIDE_CREDENTIALS` ушло вместе с пустой заглушкой Credential Manager:
+сервис не отвечал ни на один колбэк, а на Android 14+ Obscura при этом
+предлагалась как провайдер. Passkeys — отдельная задача.
 
 AutofillService в приложении пока нет, `AutofillBiometricAuthActivity`
 ниоткуда не запускается. Когда сервис появится, он защищается атрибутом

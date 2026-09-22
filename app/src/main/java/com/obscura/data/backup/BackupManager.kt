@@ -5,6 +5,8 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.annotation.Keep
+import com.obscura.data.local.EntryLink
+import com.obscura.data.local.LinkType
 import com.obscura.data.local.VaultEntity
 import com.obscura.security.BackupCryptoUtils
 import com.obscura.security.BackupFormatException
@@ -33,6 +35,16 @@ data class BackupPayload(
     val app: String = "Obscura Vault",
     val entriesCount: Int,
     val entries: List<VaultEntity>
+)
+
+/**
+ * Everything a backup file carries: the entries and the links that say which apps and sites they
+ * belong to. A version 1 file has no links, so [links] is simply empty for those.
+ */
+@Keep
+data class BackupContents(
+    val entries: List<VaultEntity>,
+    val links: List<EntryLink> = emptyList()
 )
 
 /** How imported entries are combined with what is already in the vault. */
@@ -99,23 +111,23 @@ class BackupManager(private val context: Context) {
      * Decrypts and parses a backup without writing anything. Runs in the vault session, so
      * plaintext entries are only produced while the vault is unlocked.
      */
-    suspend fun decryptBackup(uri: Uri, password: CharArray): Result<List<VaultEntity>> = resultOf {
+    suspend fun decryptBackup(uri: Uri, password: CharArray): Result<BackupContents> = resultOf {
         VaultSession.runInSession {
             val encryptedBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
                 ?: throw IllegalStateException("Could not open input stream for SAF URI: $uri")
-            deserializeJsonToEntries(BackupCryptoUtils.decryptPayload(encryptedBytes, password))
+            deserializeBackupJson(BackupCryptoUtils.decryptPayload(encryptedBytes, password))
         }
     }
 
     /** What each import mode would do with [entries] against the vault as it is now; writes nothing. */
-    suspend fun previewImport(entries: List<VaultEntity>): Result<ImportPreview> = resultOf {
+    suspend fun previewImport(contents: BackupContents): Result<ImportPreview> = resultOf {
         VaultSession.runInSession {
             val existing = VaultSession.requireDatabase().vaultDao().getEntryVersions()
                 .associate { it.id to it.updatedAt }
             ImportPreview(
-                backupEntryCount = newestPerId(entries).size,
+                backupEntryCount = newestPerId(contents.entries).size,
                 existingEntryCount = existing.size,
-                merge = planMerge(existing, entries).counts
+                merge = planMerge(existing, contents.entries).counts
             )
         }
     }
@@ -125,20 +137,30 @@ class BackupManager(private val context: Context) {
      * MERGE plans again inside the transaction, so an entry edited after [previewImport] is still
      * never overwritten by an older copy from the file.
      */
-    suspend fun restore(entries: List<VaultEntity>, mode: ImportMode): Result<ImportResult> = resultOf {
+    suspend fun restore(contents: BackupContents, mode: ImportMode): Result<ImportResult> = resultOf {
         VaultSession.runInTransaction {
             val dao = VaultSession.requireDatabase().vaultDao()
             when (mode) {
                 ImportMode.REPLACE -> {
                     val removed = dao.getEntryVersions().size
-                    val incoming = newestPerId(entries)
+                    val incoming = newestPerId(contents.entries)
+                    dao.clearAllLinks()
                     dao.clearAll()
                     dao.insertAll(incoming)
+                    dao.insertAllLinks(contents.linksOf(incoming))
                     ImportResult(mode, added = incoming.size, updated = 0, unchanged = 0, removed = removed)
                 }
                 ImportMode.MERGE -> {
-                    val plan = planMerge(dao.getEntryVersions().associate { it.id to it.updatedAt }, entries)
-                    dao.insertAll(plan.toAdd + plan.toUpdate)
+                    val plan = planMerge(
+                        dao.getEntryVersions().associate { it.id to it.updatedAt },
+                        contents.entries
+                    )
+                    val written = plan.toAdd + plan.toUpdate
+                    dao.insertAll(written)
+                    // Links follow their entry: only the entries taken from the file get theirs
+                    // replaced, entries the vault kept keep the links they already had.
+                    dao.deleteLinksOfEntries(written.map { it.id })
+                    dao.insertAllLinks(contents.linksOf(written))
                     ImportResult(
                         mode,
                         added = plan.toAdd.size,
@@ -151,6 +173,12 @@ class BackupManager(private val context: Context) {
         }
     }
 
+    /** Links belonging to [entries]; a link whose entry is not written would break the foreign key. */
+    private fun BackupContents.linksOf(entries: List<VaultEntity>): List<EntryLink> {
+        val ids = entries.mapTo(HashSet()) { it.id }
+        return links.filter { it.entryId in ids }
+    }
+
     /**
      * Decrypts and restores in one call.
      * Fails with UnsupportedBackupVersionException for backups of another format version.
@@ -161,7 +189,7 @@ class BackupManager(private val context: Context) {
         mode: ImportMode = ImportMode.MERGE
     ): Result<ImportResult> =
         decryptBackup(uri, password).fold(
-            onSuccess = { entries -> restore(entries, mode) },
+            onSuccess = { contents -> restore(contents, mode) },
             onFailure = { Result.failure(it) }
         )
 
@@ -182,8 +210,10 @@ class BackupManager(private val context: Context) {
         internal suspend fun exportVault(password: CharArray, openOutput: () -> OutputStream?): Result<Int> =
             resultOf {
                 VaultSession.runInSession {
-                    val entries = VaultSession.requireDatabase().vaultDao().getAllEntriesDirect()
-                    val encryptedBytes = BackupCryptoUtils.encryptPayload(serializeEntriesToJson(entries), password)
+                    val dao = VaultSession.requireDatabase().vaultDao()
+                    val contents = BackupContents(dao.getAllEntriesDirect(), dao.getAllLinksDirect())
+                    val entries = contents.entries
+                    val encryptedBytes = BackupCryptoUtils.encryptPayload(serializeBackupJson(contents), password)
 
                     // Don't start writing if the vault locked while the payload was being built.
                     ensureActive()
@@ -208,7 +238,8 @@ private inline fun <T> resultOf(block: () -> T): Result<T> =
         Result.failure(e)
     }
 
-private fun serializeEntriesToJson(entries: List<VaultEntity>): String {
+private fun serializeBackupJson(contents: BackupContents): String {
+    val entries = contents.entries
     val root = JSONObject().apply {
         // Must stay the first key: readers check it before touching anything else.
         put("formatVersion", BackupCryptoUtils.FORMAT_VERSION)
@@ -235,16 +266,30 @@ private fun serializeEntriesToJson(entries: List<VaultEntity>): String {
             array.put(obj)
         }
         put("entries", array)
+
+        val linkArray = JSONArray()
+        contents.links.forEach { link ->
+            linkArray.put(
+                JSONObject().apply {
+                    put("id", link.id)
+                    put("entryId", link.entryId)
+                    put("type", link.type)
+                    put("value", link.value)
+                    put("certSha256", link.certSha256)
+                }
+            )
+        }
+        put("links", linkArray)
     }
     return root.toString(2)
 }
 
-private fun deserializeJsonToEntries(jsonString: String): List<VaultEntity> {
+private fun deserializeBackupJson(jsonString: String): BackupContents {
     val root = JSONObject(jsonString)
 
     // A missing field reads as -1 and is rejected like any other unknown version.
     val formatVersion = root.optInt("formatVersion", -1)
-    if (formatVersion != BackupCryptoUtils.FORMAT_VERSION) {
+    if (formatVersion !in BackupCryptoUtils.SUPPORTED_FORMAT_VERSIONS) {
         throw UnsupportedBackupVersionException(formatVersion, BackupCryptoUtils.FORMAT_VERSION)
     }
 
@@ -270,5 +315,28 @@ private fun deserializeJsonToEntries(jsonString: String): List<VaultEntity> {
             )
         )
     }
-    return result
+
+    // Version 1 files have no links at all; anything pointing at an entry the file does not
+    // carry is dropped, because it could not be written without breaking the foreign key.
+    val entryIds = result.mapTo(HashSet()) { it.id }
+    val links = ArrayList<EntryLink>()
+    val linkArray = root.optJSONArray("links")
+    for (i in 0 until (linkArray?.length() ?: 0)) {
+        val obj = linkArray!!.getJSONObject(i)
+        val entryId = obj.optString("entryId", "")
+        val type = obj.optString("type", "")
+        val value = obj.optString("value", "")
+        if (entryId !in entryIds || LinkType.fromId(type) == null || value.isEmpty()) continue
+        links.add(
+            EntryLink(
+                id = obj.optString("id", java.util.UUID.randomUUID().toString()),
+                entryId = entryId,
+                type = type,
+                value = value,
+                certSha256 = obj.optString("certSha256", "")
+            )
+        )
+    }
+
+    return BackupContents(result, links)
 }

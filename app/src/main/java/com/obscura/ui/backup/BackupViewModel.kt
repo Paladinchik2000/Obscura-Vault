@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.obscura.R
+import com.obscura.data.backup.BackupContents
 import com.obscura.data.backup.BackupManager
 import com.obscura.data.backup.ImportMode
 import com.obscura.data.backup.ImportPreview
@@ -97,7 +98,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     val importState: StateFlow<ImportState> = _importState.asStateFlow()
 
     private var importUri: Uri? = null
-    private var pendingEntries: List<VaultEntity>? = null
+    private var pendingContents: BackupContents? = null
 
     init {
         viewModelScope.launch {
@@ -179,12 +180,12 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
                 password.fill(Char(0))
             }
             decrypted.fold(
-                onSuccess = { entries ->
-                    val preview = backupManager.previewImport(entries).getOrElse { e ->
+                onSuccess = { contents ->
+                    val preview = backupManager.previewImport(contents).getOrElse { e ->
                         _importState.value = ImportState(phase = ImportPhase.Failed(importErrorMessage(e)))
                         return@launch
                     }
-                    pendingEntries = entries
+                    pendingContents = contents
                     _importState.value = ImportState(phase = ImportPhase.ChooseMode(preview))
                 },
                 onFailure = { e ->
@@ -199,13 +200,13 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun onImportModeChosen(mode: ImportMode) {
-        val entries = pendingEntries ?: return
+        val contents = pendingContents ?: return
         if (_importState.value.phase !is ImportPhase.ChooseMode) return
         _importState.value = ImportState(phase = ImportPhase.Writing)
 
         viewModelScope.launch {
-            val result = backupManager.restore(entries, mode)
-            pendingEntries = null
+            val result = backupManager.restore(contents, mode)
+            pendingContents = null
             _importState.value = ImportState(
                 phase = result.fold(
                     onSuccess = { done -> ImportPhase.Done(done) },
@@ -222,13 +223,13 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     fun onImportResultAcknowledged() = onImportCancelled()
 
     override fun onCleared() {
-        pendingEntries = null
+        pendingContents = null
         importUri = null
     }
 
     private fun resetImport() {
         importUri = null
-        pendingEntries = null
+        pendingContents = null
         _importState.value = ImportState()
     }
 

@@ -13,6 +13,7 @@ import com.obscura.data.backup.ImportPreview
 import com.obscura.data.backup.ImportResult
 import com.obscura.data.backup.MergeCounts
 import com.obscura.data.local.VaultEntity
+import com.obscura.security.BackupCryptoUtils
 import com.obscura.security.UnsupportedBackupVersionException
 import com.obscura.security.VaultLockedException
 import com.obscura.security.VaultSession
@@ -197,7 +198,10 @@ class BackupFlowTest {
         val phase = awaitImport(viewModel) { it is ImportPhase.Failed || it is ImportPhase.PasswordRequired }
         recorder.cancel()
 
-        assertEquals(ImportPhase.Failed(BackupMessages.unsupportedVersion(99, 1)), phase)
+        assertEquals(
+            ImportPhase.Failed(BackupMessages.unsupportedVersion(99, BackupCryptoUtils.FORMAT_VERSION)),
+            phase
+        )
         assertTrue("password must never be requested, saw $seen", seen.none { it is ImportPhase.PasswordRequired })
     }
 

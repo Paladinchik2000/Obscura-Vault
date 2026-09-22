@@ -17,7 +17,7 @@ import javax.crypto.SecretKey
  * Instances are owned by [com.obscura.security.VaultSession]; don't cache them elsewhere.
  */
 @Keep
-@Database(entities = [VaultEntity::class], version = 1, exportSchema = true)
+@Database(entities = [VaultEntity::class, EntryLink::class], version = 2, exportSchema = true)
 abstract class VaultDatabase : RoomDatabase() {
 
     abstract fun vaultDao(): VaultDao
@@ -56,7 +56,8 @@ abstract class VaultDatabase : RoomDatabase() {
                 )
                     // The factory keeps a reference to this array; no copy is made on either side.
                     .openHelperFactory(SupportOpenHelperFactory(passphrase))
-                    .fallbackToDestructiveMigration()
+                    // No destructive fallback: this database holds the only copy of the data.
+                    .addMigrations(*VaultMigrations.ALL)
                     .build()
                 database.passphrase = passphrase
                 return database

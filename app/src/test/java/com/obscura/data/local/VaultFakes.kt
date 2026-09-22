@@ -51,5 +51,13 @@ class FakeVaultDao(
     override suspend fun clearAll() = unused()
     override suspend fun insertAll(entries: List<VaultEntity>) = unused()
 
+    override suspend fun linksByValue(type: String, value: String): List<EntryLink> = unused()
+    override suspend fun linksOfEntry(entryId: String): List<EntryLink> = unused()
+    override suspend fun getAllLinksDirect(): List<EntryLink> = emptyList()
+    override suspend fun insertLink(link: EntryLink) = unused()
+    override suspend fun insertAllLinks(links: List<EntryLink>) = unused()
+    override suspend fun deleteLinksOfEntries(entryIds: List<String>) = unused()
+    override suspend fun clearAllLinks() = unused()
+
     private fun unused(): Nothing = throw UnsupportedOperationException("not used by fakes")
 }

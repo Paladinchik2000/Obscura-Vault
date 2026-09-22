@@ -67,4 +67,29 @@ interface VaultDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<VaultEntity>)
+
+    // =========================================================
+    // Links to apps and sites (autofill)
+    // =========================================================
+
+    @Query("SELECT * FROM entry_links WHERE type = :type AND value = :value")
+    suspend fun linksByValue(type: String, value: String): List<EntryLink>
+
+    @Query("SELECT * FROM entry_links WHERE entryId = :entryId")
+    suspend fun linksOfEntry(entryId: String): List<EntryLink>
+
+    @Query("SELECT * FROM entry_links")
+    suspend fun getAllLinksDirect(): List<EntryLink>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLink(link: EntryLink)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllLinks(links: List<EntryLink>)
+
+    @Query("DELETE FROM entry_links WHERE entryId IN (:entryIds)")
+    suspend fun deleteLinksOfEntries(entryIds: List<String>)
+
+    @Query("DELETE FROM entry_links")
+    suspend fun clearAllLinks()
 }
