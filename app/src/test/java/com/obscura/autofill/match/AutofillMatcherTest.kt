@@ -19,6 +19,9 @@ class AutofillMatcherTest {
         const val FAKE_CERT = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
         const val CHROME = "com.android.chrome"
         const val CHROME_CERT = "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+        const val SAMSUNG = "com.sec.android.app.sbrowser"
+        const val SAMSUNG_CERT = "34df0e7a9f1cf1892e45c056b4973cd81ccf148a4050d11aea4ac5a65f900a42"
+        const val SAMSUNG_NON_GALAXY_CERT = "0a012131b1bdf9e80ef97d37f3b48362be363a464c8445ecf83627ebe8493a1e"
     }
 
     private val psl = PublicSuffixList { File("src/main/res/raw/public_suffix_list.gz").inputStream() }
@@ -42,6 +45,10 @@ class AutofillMatcherTest {
     private fun fromApp(pkg: String, cert: String) = FillTarget(pkg, setOf(cert))
 
     private fun fromChrome(host: String) = FillTarget(CHROME, setOf(CHROME_CERT), webHost = host)
+
+    /** Goes through the same rule the service uses, so the domain survives only if it may. */
+    private fun asked(pkg: String, cert: String, webDomain: String) =
+        FillTarget.of(pkg, setOf(cert), webDomain)
 
     // ------------------------------------------------------------------ apps
 
@@ -120,6 +127,26 @@ class AutofillMatcherTest {
     fun junkInTheUrlColumnIsNotTreatedAsASite() {
         val candidate = EntryWithLinks(login("e1", url = "my bank, second account"))
         assertFalse(matcher.matches(fromChrome("bank.com"), candidate))
+    }
+
+    @Test
+    fun samsungInternetIsBelievedOnlyWhenItIsReallySamsungInternet() {
+        val candidate = EntryWithLinks(login("e1", url = "https://bank.com"))
+
+        assertTrue(
+            "the browser on the phone must be able to fill its own sites",
+            matcher.matches(asked(SAMSUNG, SAMSUNG_CERT, "https://bank.com/login"), candidate)
+        )
+        assertTrue(
+            "non-Galaxy phones get the same browser signed with another Samsung key",
+            matcher.matches(asked(SAMSUNG, SAMSUNG_NON_GALAXY_CERT, "https://bank.com/login"), candidate)
+        )
+        // Same package name, someone else's signature: the domain is dropped and what is left is
+        // an app with no link to this entry.
+        assertFalse(
+            "an app that only calls itself Samsung Internet must get nothing",
+            matcher.matches(asked(SAMSUNG, FAKE_CERT, "https://bank.com/login"), candidate)
+        )
     }
 
     // ------------------------------------------------------------------ categories

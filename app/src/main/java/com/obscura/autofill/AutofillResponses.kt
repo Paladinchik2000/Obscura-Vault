@@ -16,7 +16,6 @@ import com.obscura.autofill.match.DomainMatcher
 import com.obscura.autofill.match.EntryWithLinks
 import com.obscura.autofill.match.FillTarget
 import com.obscura.autofill.match.PublicSuffixList
-import com.obscura.autofill.match.TrustedBrowsers
 import com.obscura.data.local.VaultEntity
 import com.obscura.security.VaultSession
 
@@ -37,15 +36,8 @@ class AutofillResponses(private val context: Context) {
      * What the request is for. The domain in the layout is only believed when the caller is a
      * browser we recognise by package and signing certificate.
      */
-    fun targetFor(identity: CallerIdentity, form: ParsedForm): FillTarget {
-        val trusted = TrustedBrowsers.isTrusted(identity.packageName, identity.certificateHashes)
-        val host = if (trusted) form.webDomain?.let { DomainMatcher.hostOf(it) } else null
-        return FillTarget(
-            callerPackage = identity.packageName,
-            callerCertificateHashes = identity.certificateHashes,
-            webHost = host
-        )
-    }
+    fun targetFor(identity: CallerIdentity, form: ParsedForm): FillTarget =
+        FillTarget.of(identity.packageName, identity.certificateHashes, form.webDomain)
 
     /** Entries that may be offered here, newest first. Runs in the vault session. */
     suspend fun matchingEntries(target: FillTarget): List<VaultEntity> =

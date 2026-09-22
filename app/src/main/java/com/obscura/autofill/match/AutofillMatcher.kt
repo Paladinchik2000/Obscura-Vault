@@ -19,7 +19,23 @@ data class FillTarget(
     val callerPackage: String,
     val callerCertificateHashes: Set<String>,
     val webHost: String? = null
-)
+) {
+    companion object {
+        /**
+         * Builds the target for a request. The domain the caller put in its layout is kept only
+         * when the caller is a trusted browser; for anyone else it is dropped here, once, so that
+         * the rule cannot drift apart between the service and the tests.
+         */
+        fun of(packageName: String, certificateHashes: Set<String>, webDomain: String?): FillTarget {
+            val trusted = TrustedBrowsers.isTrusted(packageName, certificateHashes)
+            return FillTarget(
+                callerPackage = packageName,
+                callerCertificateHashes = certificateHashes,
+                webHost = if (trusted) webDomain?.let { DomainMatcher.hostOf(it) } else null
+            )
+        }
+    }
+}
 
 /**
  * Decides which entries may be offered for a request. Nothing matches unless it was linked on

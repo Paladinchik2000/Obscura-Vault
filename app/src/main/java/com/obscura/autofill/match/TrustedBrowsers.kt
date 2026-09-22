@@ -14,9 +14,8 @@ package com.obscura.autofill.match
  * commit 282e9519ae5c of 2024-08-13, converted from base64 to hex. Cross-checked against a real
  * package: Chrome from the android-36.1 emulator prints the same digest through apksigner.
  *
- * Samsung Internet (com.sec.android.app.sbrowser) is deliberately absent: no hash for it could be
- * verified from a package or a public list here. Until one is added from the device
- * (`apksigner verify --print-certs`), it counts as an ordinary app and its webDomain is ignored.
+ * Samsung Internet is signed with two different keys depending on the device it is installed on,
+ * so it carries both — see the comment on its entry below.
  */
 object TrustedBrowsers {
 
@@ -54,6 +53,20 @@ object TrustedBrowsers {
         ),
         "com.opera.touch" to setOf(
             "aad8e204d24d177934c9cd0c63cc6aa38efbf42c4a6957097e2210f57faa67aa"
+        ),
+        // Samsung Internet. Not in the Android Password Store list, and it has two signatures,
+        // both taken from the certificate fingerprints APKMirror prints for its uploads of
+        // com.sec.android.app.sbrowser (checked 2026-09-22, versions 30.0.2.30 and 30.0.0.67):
+        //   - "EMAILADDRESS=android.os@samsung.com, CN=Samsung Cert, O=Samsung Corporation" —
+        //     the build Galaxy devices carry.
+        //   - "CN=Samsung Platform Key for non-Galaxy devices, O=Samsung Electronics Co. Ltd." —
+        //     the build every other phone gets from Play.
+        // A mirror is weaker evidence than a package read off a device, but a wrong hash here can
+        // only cost trust, never grant it: an unrecognised certificate means the domain is
+        // ignored and the browser is matched as an ordinary app.
+        "com.sec.android.app.sbrowser" to setOf(
+            "34df0e7a9f1cf1892e45c056b4973cd81ccf148a4050d11aea4ac5a65f900a42",
+            "0a012131b1bdf9e80ef97d37f3b48362be363a464c8445ecf83627ebe8493a1e"
         ),
         "com.vivaldi.browser" to setOf(
             "e8a78544655ba8c09817f732768f5689b1662ec4b2bc5a0bc0ec138d33ca3d1e"
