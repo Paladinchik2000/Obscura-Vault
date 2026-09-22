@@ -25,7 +25,6 @@ sqlcipher = "4.19.0"
 datastorePreferences = "1.1.7"
 robolectric = "4.16.1"
 roborazzi = "1.59.0"
-credentials = "1.5.0"
 
 
 [libraries]
@@ -63,7 +62,6 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-junit-rule = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule", version.ref = "roborazzi" }
-androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 
 
 [plugins]
