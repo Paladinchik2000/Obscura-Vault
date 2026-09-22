@@ -77,7 +77,11 @@ class ObscuraAutofillService : AutofillService() {
         val target = responses.targetFor(identity, form)
         val job = scope.launch {
             val response = try {
-                responses.datasetsResponse(responses.matchingEntries(target), form)
+                responses.datasetsResponse(
+                    entries = responses.matchingEntries(target),
+                    form = form,
+                    search = pickPendingIntent(form, callerPackage)
+                )
             } catch (e: VaultLockedException) {
                 // Locked between the check and the query: ask for the unlock instead.
                 responses.lockedResponse(form, unlockPendingIntent(form, callerPackage))
@@ -97,16 +101,32 @@ class ObscuraAutofillService : AutofillService() {
         super.onDestroy()
     }
 
-    private fun unlockPendingIntent(form: ParsedForm, callerPackage: String): PendingIntent {
+    /** The vault is locked: unlock first, then answer with whatever matches. */
+    private fun unlockPendingIntent(form: ParsedForm, callerPackage: String): PendingIntent =
+        activityPendingIntent(form, callerPackage, pick = false, resultIsDataset = false)
+
+    /** "Search Obscura": the user chooses an entry by hand, so the answer is one dataset. */
+    private fun pickPendingIntent(form: ParsedForm, callerPackage: String): PendingIntent =
+        activityPendingIntent(form, callerPackage, pick = true, resultIsDataset = true)
+
+    private fun activityPendingIntent(
+        form: ParsedForm,
+        callerPackage: String,
+        pick: Boolean,
+        resultIsDataset: Boolean
+    ): PendingIntent {
         val intent = Intent(this, AutofillUnlockActivity::class.java).apply {
             putExtra(AutofillUnlockActivity.EXTRA_CALLER_PACKAGE, callerPackage)
             putExtra(AutofillUnlockActivity.EXTRA_USERNAME_ID, form.usernameId)
             putExtra(AutofillUnlockActivity.EXTRA_PASSWORD_ID, form.passwordId)
             putExtra(AutofillUnlockActivity.EXTRA_WEB_DOMAIN, form.webDomain)
+            putExtra(AutofillUnlockActivity.EXTRA_PICK, pick)
+            putExtra(AutofillUnlockActivity.EXTRA_RESULT_IS_DATASET, resultIsDataset)
         }
         return PendingIntent.getActivity(
             this,
-            form.autofillIds().contentHashCode(),
+            // Distinct request codes, or the two intents would overwrite each other.
+            form.autofillIds().contentHashCode() * 2 + if (pick) 1 else 0,
             intent,
             // Immutable: the screen is given everything it needs here, and nothing else may
             // rewrite this intent on its way through the system.

@@ -1,6 +1,7 @@
 package com.obscura.autofill
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -9,22 +10,31 @@ import android.view.autofill.AutofillManager
 import androidx.activity.compose.setContent
 import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.obscura.autofill.match.CallerIdentity
+import com.obscura.autofill.match.DomainMatcher
+import com.obscura.autofill.match.PublicSuffixList
+import com.obscura.data.local.EntryLink
+import com.obscura.data.local.LinkType
+import com.obscura.data.local.VaultEntity
+import com.obscura.data.model.VaultCategory
 import com.obscura.security.VaultSession
 import com.obscura.ui.auth.LoginScreen
 import com.obscura.ui.theme.ObscuraTheme
 import kotlinx.coroutines.launch
 
 /**
- * The unlock step of an autofill request: the vault was locked, so the response carried this
- * screen instead of any data.
+ * The part of an autofill request that needs the user: unlocking the vault, choosing an entry by
+ * hand, or both.
  *
- * It is the app's own login screen, with the app's own PIN and fingerprint. The device PIN is
- * deliberately not accepted: it would mean anyone who knows the phone's PIN can read every
- * password. Nothing sensitive travels in the intent — only which fields to fill and who asked —
- * and the datasets are built here, after the vault is open.
+ * Unlocking uses the app's own PIN or fingerprint. The device PIN is deliberately not accepted:
+ * it would mean anyone who knows the phone's PIN can read every password. Nothing sensitive
+ * travels in the intent — only which fields to fill and who asked — and datasets are built here,
+ * after the vault is open.
  */
 @RequiresApi(Build.VERSION_CODES.O)
 @Keep
@@ -35,16 +45,25 @@ class AutofillUnlockActivity : FragmentActivity() {
         const val EXTRA_USERNAME_ID = "com.obscura.autofill.USERNAME_ID"
         const val EXTRA_PASSWORD_ID = "com.obscura.autofill.PASSWORD_ID"
         const val EXTRA_WEB_DOMAIN = "com.obscura.autofill.WEB_DOMAIN"
+
+        /** Whether the user is choosing an entry by hand rather than just unlocking. */
+        const val EXTRA_PICK = "com.obscura.autofill.PICK"
+
+        /** A response-level authentication answers with a FillResponse, a dataset with a Dataset. */
+        const val EXTRA_RESULT_IS_DATASET = "com.obscura.autofill.RESULT_IS_DATASET"
     }
 
     private lateinit var callerPackage: String
     private lateinit var form: ParsedForm
+    private val responses by lazy { AutofillResponses(this) }
+    private var resultIsDataset = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
 
         callerPackage = intent.getStringExtra(EXTRA_CALLER_PACKAGE).orEmpty()
+        resultIsDataset = intent.getBooleanExtra(EXTRA_RESULT_IS_DATASET, false)
         form = ParsedForm(
             usernameId = autofillIdExtra(EXTRA_USERNAME_ID),
             passwordId = autofillIdExtra(EXTRA_PASSWORD_ID),
@@ -56,45 +75,118 @@ class AutofillUnlockActivity : FragmentActivity() {
             return
         }
 
-        // A parallel unlock in the app itself means there is nothing left to ask for.
         if (VaultSession.isUnlocked.value) {
-            answerWithMatches()
+            continueUnlocked()
+        } else {
+            setContent { ObscuraTheme { LoginScreen(onUnlocked = { continueUnlocked() }) } }
+        }
+    }
+
+    /** Vault open: either hand back what matches, or let the user choose. */
+    private fun continueUnlocked() {
+        if (intent.getBooleanExtra(EXTRA_PICK, false)) {
+            showPicker()
             return
         }
 
-        setContent {
-            ObscuraTheme {
-                LoginScreen(onUnlocked = { answerWithMatches() })
-            }
-        }
-    }
-
-    /** Builds the datasets the locked response could not carry and hands them back. */
-    private fun answerWithMatches() {
         lifecycleScope.launch {
-            val responses = AutofillResponses(this@AutofillUnlockActivity)
             val identity = CallerIdentity.of(this@AutofillUnlockActivity, callerPackage)
-            val response = if (identity == null) {
-                null
+            val matches = if (identity == null) {
+                emptyList()
             } else {
-                runCatching {
-                    responses.datasetsResponse(
-                        responses.matchingEntries(responses.targetFor(identity, form)),
-                        form
-                    )
-                }.getOrNull()
+                runCatching { responses.matchingEntries(responses.targetFor(identity, form)) }
+                    .getOrDefault(emptyList())
             }
 
-            if (response == null) {
-                finishWithoutData()
-            } else {
-                setResult(RESULT_OK, Intent().putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, response))
-                finish()
+            // Nothing matched: rather than an empty answer, offer the manual choice right away.
+            if (matches.isEmpty()) showPicker() else answerWith(responses.datasetsResponse(matches, form))
+        }
+    }
+
+    private fun showPicker() {
+        lifecycleScope.launch {
+            val entries = runCatching { loginEntries() }.getOrDefault(emptyList())
+            val label = targetLabel()
+
+            setContent {
+                ObscuraTheme {
+                    AutofillPickerScreen(
+                        entries = entries,
+                        targetLabel = label,
+                        onPick = { entry, link -> onEntryPicked(entry, link) }
+                    )
+                }
             }
         }
     }
 
-    /** Unlocked but nothing matches, or the request made no sense: end without filling anything. */
+    private fun onEntryPicked(entry: VaultEntity, link: Boolean) {
+        lifecycleScope.launch {
+            if (link) runCatching { saveLink(entry) }
+            answerWith(responses.datasetsResponse(listOf(entry), form), entry)
+        }
+    }
+
+    /** Remembers the choice, so next time the entry is offered without asking. */
+    private suspend fun saveLink(entry: VaultEntity) {
+        val identity = CallerIdentity.of(this, callerPackage) ?: return
+        val host = responses.targetFor(identity, form).webHost
+
+        val link = if (host != null) {
+            val domains = DomainMatcher(PublicSuffixList.fromResources(this))
+            val storable = domains.storableHost(host) ?: return
+            EntryLink(entryId = entry.id, type = LinkType.DOMAIN.id, value = storable)
+        } else {
+            EntryLink(
+                entryId = entry.id,
+                type = LinkType.APP.id,
+                value = identity.packageName,
+                certSha256 = identity.currentCertificateHash
+            )
+        }
+
+        VaultSession.runInSession { VaultSession.requireDatabase().vaultDao().insertLink(link) }
+    }
+
+    private suspend fun loginEntries(): List<VaultEntity> =
+        VaultSession.runInSession {
+            VaultSession.requireDatabase().vaultDao().getAllEntriesDirect()
+                .filter { it.getCategoryEnum() == VaultCategory.ACCOUNT }
+        }
+
+    /** What to call the request in the link question: the site, or the app's own name. */
+    private fun targetLabel(): String? {
+        val identity = CallerIdentity.of(this, callerPackage) ?: return null
+        responses.targetFor(identity, form).webHost?.let { return it }
+        return runCatching {
+            val info = packageManager.getApplicationInfo(callerPackage, 0)
+            packageManager.getApplicationLabel(info).toString()
+        }.getOrDefault(callerPackage)
+    }
+
+    private fun answerWith(response: android.service.autofill.FillResponse?, picked: VaultEntity? = null) {
+        if (response == null) {
+            finishWithoutData()
+            return
+        }
+
+        val result = Intent()
+        if (resultIsDataset) {
+            // A dataset authentication must answer with a dataset, not with a whole response.
+            val entry = picked
+            if (entry == null) {
+                finishWithoutData()
+                return
+            }
+            result.putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, responses.datasetFor(entry, form))
+        } else {
+            result.putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, response)
+        }
+        setResult(RESULT_OK, result)
+        finish()
+    }
+
+    /** Nothing to fill, or the request made no sense: end without filling anything. */
     private fun finishWithoutData() {
         setResult(RESULT_CANCELED)
         finish()

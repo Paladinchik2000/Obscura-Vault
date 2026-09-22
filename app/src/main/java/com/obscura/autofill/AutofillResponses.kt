@@ -58,11 +58,35 @@ class AutofillResponses(private val context: Context) {
             matcher.candidates(target, candidates)
         }
 
-    /** One dataset per entry; null when there is nothing to offer. */
-    fun datasetsResponse(entries: List<VaultEntity>, form: ParsedForm): FillResponse? {
-        if (entries.isEmpty()) return null
+    /**
+     * One dataset per entry, plus a way into the manual choice. [search] is null when the caller
+     * already is the picker, and then an empty list means there is nothing to answer with.
+     */
+    fun datasetsResponse(
+        entries: List<VaultEntity>,
+        form: ParsedForm,
+        search: PendingIntent? = null
+    ): FillResponse? {
+        if (entries.isEmpty() && search == null) return null
         val builder = FillResponse.Builder()
-        entries.forEach { entry -> builder.addDataset(dataset(entry, form)) }
+        entries.forEach { entry -> builder.addDataset(datasetFor(entry, form)) }
+        search?.let { builder.addDataset(searchDataset(form, it)) }
+        return builder.build()
+    }
+
+    /**
+     * "Search Obscura": shown when nothing matched, and alongside matches so a different entry
+     * can still be chosen. It carries no values — picking it opens our own screen.
+     */
+    private fun searchDataset(form: ParsedForm, pick: PendingIntent): Dataset {
+        val view = presentation(
+            context.getString(R.string.autofill_search_title),
+            context.getString(R.string.autofill_search_subtitle)
+        )
+        val builder = Dataset.Builder()
+        form.usernameId?.let { builder.setValue(it, null, view) }
+        form.passwordId?.let { builder.setValue(it, null, view) }
+        builder.setAuthentication(pick.intentSender)
         return builder.build()
     }
 
@@ -76,7 +100,7 @@ class AutofillResponses(private val context: Context) {
             )
             .build()
 
-    private fun dataset(entry: VaultEntity, form: ParsedForm): Dataset {
+    fun datasetFor(entry: VaultEntity, form: ParsedForm): Dataset {
         val builder = Dataset.Builder()
         val view = presentation(entry.title, entry.usernameOrCardholder.ifBlank { null })
 

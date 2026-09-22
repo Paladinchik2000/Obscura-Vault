@@ -222,14 +222,13 @@
     <!-- Autofill -->
     <string name="autofill_unlock_title">Unlock Obscura</string>
     <string name="autofill_unlock_subtitle">Your vault is locked</string>
-    <string name="autofill_default_entry_title">Obscura item</string>
-    <string name="autofill_prompt_title">Obscura Autofill</string>
-    <string name="autofill_prompt_subtitle">Authenticate to autofill %1$s</string>
-    <string name="autofill_heading">AUTOFILL VERIFICATION</string>
-    <string name="autofill_message">Verify your identity to release credentials for</string>
-    <string name="autofill_target_account">TARGET ACCOUNT</string>
-    <string name="autofill_authenticate">AUTHENTICATE &amp; AUTOFILL</string>
-    <string name="autofill_fingerprint">Fingerprint</string>
-    <string name="autofill_cancel">CANCEL</string>
-    <string name="autofill_masked_password" translatable="false">••••••••</string>
+    <string name="autofill_search_title">Search Obscura</string>
+    <string name="autofill_search_subtitle">Choose an entry yourself</string>
+    <string name="autofill_picker_title">Choose an entry</string>
+    <string name="autofill_picker_search">Search</string>
+    <string name="autofill_picker_empty">No login entries in this vault yet</string>
+    <string name="autofill_link_title">Remember this choice?</string>
+    <string name="autofill_link_message">Offer “%1$s” for %2$s from now on?</string>
+    <string name="autofill_link_confirm">Remember</string>
+    <string name="autofill_link_decline">Just this once</string>
 </resources>

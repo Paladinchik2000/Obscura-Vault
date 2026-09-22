@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <bool name="autofill_window_translucent">true</bool>
-    <color name="autofill_window_background">@android:color/transparent</color>
-</resources>

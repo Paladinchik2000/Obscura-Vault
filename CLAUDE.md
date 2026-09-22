@@ -60,13 +60,13 @@ Keystore и без DEK. Это выглядит непоследовательн
 помещается на экран. Новые Activity обязаны объявлять portrait — это
 проверяет инструментальный тест `everyActivityIsPortraitOnly`.
 
-На API 26 полупрозрачное окно с фиксированной ориентацией падает в
+Ловушка на API 26: полупрозрачное окно с фиксированной ориентацией падает в
 `Activity.onCreate` с `IllegalStateException: Only fullscreen opaque
 activities can request orientation` (при targetSdk > 26; в 8.1 проверку
-убрали). Поэтому `AutofillBiometricAuthActivity` на API 26 делается
-непрозрачной через `values-v26` / `values-v27`. Проверено на эмуляторе
-API 26 тестом `AutofillBiometricAuthActivityTest`, включая контрольный
-прогон: без этих ресурсов тест падает именно с этим исключением.
+убрали). Проверено на эмуляторе API 26, включая контрольный прогон. Сейчас
+полупрозрачных Activity в приложении нет — `AutofillUnlockActivity`
+непрозрачная, — поэтому обходной путь через `values-v26`/`values-v27` удалён
+вместе с легаси-экраном. Заводишь полупрозрачную Activity — помни про это.
 
 Android 16 (targetSdk 36) на больших экранах игнорирует `screenOrientation`
 (ChangeId `UNIVERSAL_RESIZABLE_BY_DEFAULT`; порог ≥ 600dp — по документации).
@@ -89,10 +89,9 @@ Android 16 (targetSdk 36) на больших экранах игнорируе�
 сервис не отвечал ни на один колбэк, а на Android 14+ Obscura при этом
 предлагалась как провайдер. Passkeys — отдельная задача.
 
-AutofillService в приложении пока нет, `AutofillBiometricAuthActivity`
-ниоткуда не запускается. Когда сервис появится, он защищается атрибутом
-`android:permission="android.permission.BIND_AUTOFILL_SERVICE"` у `<service>`,
-это не `uses-permission`.
+`ObscuraAutofillService` защищён атрибутом
+`android:permission="android.permission.BIND_AUTOFILL_SERVICE"` у `<service>`;
+в `uses-permission` это не добавляется и в списке выше не появляется.
 
 ## Автоблокировка
 

@@ -16,38 +16,53 @@ import java.security.MessageDigest
 data class CallerIdentity(
     val packageName: String,
     /** Lower-case hex SHA-256 of the signing certificates, including rotated-away ones. */
-    val certificateHashes: Set<String>
+    val certificateHashes: Set<String>,
+    /** What the package is signed with right now; this is what a new link records. */
+    val currentCertificateHash: String
 ) {
     companion object {
 
         /** Null when the package cannot be read: without a certificate nothing may be offered. */
         fun of(context: Context, packageName: String): CallerIdentity? {
-            val hashes = signingCertificates(context.packageManager, packageName)
-            if (hashes.isEmpty()) return null
-            return CallerIdentity(packageName, hashes)
+            val manager = context.packageManager
+            val current = currentSigningCertificates(manager, packageName)
+            val all = current + historicSigningCertificates(manager, packageName)
+            if (all.isEmpty()) return null
+            return CallerIdentity(
+                packageName = packageName,
+                certificateHashes = all,
+                currentCertificateHash = current.firstOrNull() ?: all.first()
+            )
         }
 
-        private fun signingCertificates(packageManager: PackageManager, packageName: String): Set<String> =
+        /** What the package is signed with today; several entries when it has several signers. */
+        private fun currentSigningCertificates(packageManager: PackageManager, packageName: String): Set<String> =
             runCatching {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     val info = packageManager
                         .getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
                         .signingInfo ?: return emptySet()
-                    // An app signed by several parties has all of them at once; an app whose key
-                    // was rotated (signature scheme v3) keeps the older certificates in history,
-                    // and a link saved before the rotation has to keep working.
-                    val signatures = if (info.hasMultipleSigners()) {
-                        info.apkContentsSigners
-                    } else {
-                        info.signingCertificateHistory
-                    }
-                    signatures.orEmpty().toHashes()
+                    info.apkContentsSigners.orEmpty().toHashes()
                 } else {
                     @Suppress("DEPRECATION")
                     packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
                         .signatures.orEmpty().toHashes()
                 }
             }.getOrDefault(emptySet())
+
+        /**
+         * Certificates the package was signed with before its key was rotated (APK signature
+         * scheme v3). A link saved before a rotation has to keep working afterwards.
+         */
+        private fun historicSigningCertificates(packageManager: PackageManager, packageName: String): Set<String> {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return emptySet()
+            return runCatching {
+                val info = packageManager
+                    .getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+                    .signingInfo ?: return emptySet()
+                if (info.hasMultipleSigners()) emptySet() else info.signingCertificateHistory.orEmpty().toHashes()
+            }.getOrDefault(emptySet())
+        }
 
         private fun Array<out Signature>.toHashes(): Set<String> =
             mapNotNullTo(HashSet()) { signature ->
