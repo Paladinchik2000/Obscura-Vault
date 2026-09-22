@@ -9,13 +9,21 @@ import com.obscura.security.*
 import com.obscura.security.AuthRepository
 import com.obscura.ui.common.UiText
 import com.obscura.ui.common.uiText
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 const val PIN_LENGTH = 6
+
+/** How often a showing lockout is checked against AuthRepository. */
+private const val LOCKOUT_POLL_MS = 200L
 
 data class LoginUiState(
     val pin: String = "",
@@ -41,6 +49,39 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         )
     )
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
+
+    init {
+        watchLockout()
+    }
+
+    /**
+     * The lockout has to clear itself: the countdown on screen is only a label, and the vault
+     * screen is not recreated when it runs out. AuthRepository stays the source of truth, this
+     * only polls it while a lockout is showing.
+     */
+    private fun watchLockout() = viewModelScope.launch {
+        _state.map { it.lockedUntil }.distinctUntilChanged().collectLatest { until ->
+            if (until == null) return@collectLatest
+            while (isActive) {
+                if (repo.lockoutRemaining() == null) {
+                    clearLockout()
+                    break
+                }
+                delay(LOCKOUT_POLL_MS)
+            }
+        }
+    }
+
+    /** Re-reads the lockout from storage; call when the screen comes back to the foreground. */
+    fun refreshLockout() {
+        val until = repo.lockoutRemaining()
+        if (until == null) clearLockout() else _state.update { it.copy(lockedUntil = until) }
+    }
+
+    private fun clearLockout() = _state.update {
+        if (it.lockedUntil == null) it
+        else it.copy(lockedUntil = null, error = null, attemptsRemaining = null)
+    }
 
     // ------------------------------------------------------------- keypad
 

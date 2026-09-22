@@ -18,13 +18,21 @@ import com.obscura.security.VaultSession
 import com.obscura.ui.auth.PIN_LENGTH
 import com.obscura.ui.common.UiText
 import com.obscura.ui.common.uiText
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+/** How often a showing lockout is checked against AuthRepository. */
+private const val LOCKOUT_POLL_MS = 200L
 
 /**
  * State of the "change PIN" form. The typed PINs live here rather than in the composable, so a
@@ -87,6 +95,53 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         )
     )
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
+
+    init {
+        watchLockout()
+    }
+
+    /**
+     * Same lockout as the login screen, so it has to clear itself here too: the countdown in the
+     * dialog is only a label. AuthRepository stays the source of truth.
+     */
+    private fun watchLockout() = viewModelScope.launch {
+        _state.map { it.pinChange.lockedUntil ?: it.reset.lockedUntil }
+            .distinctUntilChanged()
+            .collectLatest { until ->
+                if (until == null) return@collectLatest
+                while (isActive) {
+                    if (repo.lockoutRemaining() == null) {
+                        clearLockout()
+                        break
+                    }
+                    delay(LOCKOUT_POLL_MS)
+                }
+            }
+    }
+
+    /** Re-reads the lockout from storage; call when the screen comes back to the foreground. */
+    fun refreshLockout() {
+        val until = repo.lockoutRemaining()
+        if (until == null) {
+            clearLockout()
+        } else {
+            _state.update {
+                it.copy(
+                    pinChange = if (it.pinChange.isOpen) it.pinChange.copy(lockedUntil = until) else it.pinChange,
+                    reset = if (it.reset.step == ResetStep.PIN) it.reset.copy(lockedUntil = until) else it.reset
+                )
+            }
+        }
+    }
+
+    private fun clearLockout() = _state.update {
+        it.copy(
+            pinChange = if (it.pinChange.lockedUntil == null) it.pinChange
+            else it.pinChange.copy(lockedUntil = null, error = null),
+            reset = if (it.reset.lockedUntil == null) it.reset
+            else it.reset.copy(lockedUntil = null, error = null)
+        )
+    }
 
     // ----------------------------------------------------------------- change pin
 

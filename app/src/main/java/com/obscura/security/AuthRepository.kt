@@ -3,6 +3,7 @@ package com.obscura.security
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
+import androidx.annotation.VisibleForTesting
 import com.obscura.data.Preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,20 +29,32 @@ sealed interface UnlockResult {
     data class Error(val cause: Throwable) : UnlockResult
 }
 
-class AuthRepository(context: Context) {
+class AuthRepository internal constructor(
+    context: Context,
+    /** Replaceable so tests do not have to wait a real lockout out. */
+    private val now: () -> Long
+) {
+
+    // Reads the companion clock on every call, so replacing it also affects repositories
+    // that were built earlier.
+    constructor(context: Context) : this(context, { clock() })
 
     private val prefs: SharedPreferences =
         context.applicationContext.getSharedPreferences(Preferences.AUTH, Context.MODE_PRIVATE)
 
-    private companion object {
-        const val KEY_SALT = "pin_salt"
-        const val KEY_PIN_BLOB = "pin_wrapped_dek"
-        const val KEY_BIO_BLOB = "bio_wrapped_dek"
-        const val KEY_FAILED = "failed_attempts"
-        const val KEY_LOCKED_UNTIL = "locked_until"
+    internal companion object {
+        /** Time source of every AuthRepository built the normal way. Tests may replace it. */
+        @VisibleForTesting
+        internal var clock: () -> Long = { System.currentTimeMillis() }
 
-        const val MAX_ATTEMPTS = 5
-        val BACKOFF_MS = longArrayOf(0, 0, 15_000, 60_000, 300_000, 900_000)
+        private const val KEY_SALT = "pin_salt"
+        private const val KEY_PIN_BLOB = "pin_wrapped_dek"
+        private const val KEY_BIO_BLOB = "bio_wrapped_dek"
+        private const val KEY_FAILED = "failed_attempts"
+        private const val KEY_LOCKED_UNTIL = "locked_until"
+
+        private const val MAX_ATTEMPTS = 5
+        private val BACKOFF_MS = longArrayOf(0, 0, 15_000, 60_000, 300_000, 900_000)
     }
 
     val isVaultInitialized: Boolean get() = prefs.contains(KEY_PIN_BLOB)
@@ -183,10 +196,13 @@ class AuthRepository(context: Context) {
 
     // -------------------------------------------------------------- lockout
 
-    /** Returns the timestamp the lockout expires, or null if not locked. */
+    /**
+     * Timestamp the lockout expires, or null when there is none. The single source of truth for
+     * every screen: UI state must be refreshed from here, never counted down in memory alone.
+     */
     fun lockoutRemaining(): Long? {
         val until = prefs.getLong(KEY_LOCKED_UNTIL, 0L)
-        return if (System.currentTimeMillis() < until) until else null
+        return if (now() < until) until else null
     }
 
     private fun registerFailure(): Int {
@@ -194,7 +210,7 @@ class AuthRepository(context: Context) {
         val delay = BACKOFF_MS[min(failed, BACKOFF_MS.lastIndex)]
         prefs.edit()
             .putInt(KEY_FAILED, failed)
-            .putLong(KEY_LOCKED_UNTIL, if (delay > 0) System.currentTimeMillis() + delay else 0L)
+            .putLong(KEY_LOCKED_UNTIL, if (delay > 0) now() + delay else 0L)
             .apply()
         return (MAX_ATTEMPTS - failed).coerceAtLeast(0)
     }

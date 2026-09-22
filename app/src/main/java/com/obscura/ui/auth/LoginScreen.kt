@@ -9,6 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,11 +45,22 @@ fun LoginScreen(
         }
     }
 
-    // Offer biometrics immediately on a cold unlock.
+    // Offer biometrics immediately on a cold unlock. A PIN lockout does not apply to them:
+    // it exists to slow down PIN guessing, and the fingerprint sensor has its own attempt limit.
     LaunchedEffect(Unit) {
-        if (state.canUseBiometrics && !state.isSetupMode && state.lockedUntil == null) {
+        if (state.canUseBiometrics && !state.isSetupMode) {
             viewModel.unlockWithBiometrics(activity)
         }
+    }
+
+    // A lockout can run out while the app is in the background, where nothing is recomposing.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) viewModel.refreshLockout()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val entered = state.confirmPin ?: state.pin
@@ -89,6 +103,7 @@ fun LoginScreen(
 
             PinKeypad(
                 enabled = !state.isBusy && state.lockedUntil == null,
+                biometricEnabled = !state.isBusy,
                 showBiometric = state.canUseBiometrics && !state.isSetupMode,
                 onDigit = viewModel::onDigit,
                 onBackspace = viewModel::onBackspace,
@@ -170,6 +185,7 @@ private fun PinDots(filled: Int, total: Int, isError: Boolean) {
 @Composable
 private fun PinKeypad(
     enabled: Boolean,
+    biometricEnabled: Boolean,
     showBiometric: Boolean,
     onDigit: (Char) -> Unit,
     onBackspace: () -> Unit,
@@ -200,7 +216,7 @@ private fun PinKeypad(
                                 modifier = Modifier.semantics { contentDescription = backspaceDescription }
                             )
                         }
-                        "bio" -> KeypadButton(enabled = enabled, onClick = onBiometric) {
+                        "bio" -> KeypadButton(enabled = biometricEnabled, onClick = onBiometric) {
                             Icon(Icons.Filled.Fingerprint, contentDescription = stringResource(R.string.keypad_biometric))
                         }
                         else -> KeypadButton(enabled = enabled, onClick = { onDigit(key[0]) }) {
