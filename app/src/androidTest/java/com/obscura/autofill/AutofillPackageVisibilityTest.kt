@@ -1,10 +1,14 @@
 package com.obscura.autofill
 
+import android.content.ComponentName
 import android.content.Context
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.UiDevice
@@ -147,6 +151,41 @@ class AutofillPackageVisibilityTest {
         once.click()
 
         assertTrue("the form was not filled with the picked entry", waitFor(By.pkg(HIDDEN).text(FILLED_CORRECTLY)))
+    }
+
+    /**
+     * The picker is started by the system from the app being filled, through our immutable
+     * PendingIntent. Whether it can tell who that app is decides whether the package name in the
+     * intent can be checked at all — so this is measured here rather than assumed.
+     */
+    @Test
+    fun thePickerKnowsWhichAppStartedIt() {
+        install("autofilltarget-hidden.apk")
+        createVaultWithEntryLinkedTo(HIDDEN)
+
+        startForm(HIDDEN)
+        assertTrue(waitFor(By.text("Search Obscura")))
+        device.findObject(By.text("Search Obscura")).click()
+        assertTrue("the picker must come up", waitFor(By.pkg("com.obscura").text(ENTRY_TITLE)))
+
+        var callingActivity: ComponentName? = null
+        var callingPackage: String? = null
+        instrumentation.runOnMainSync {
+            val picker = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<AutofillUnlockActivity>()
+                .single()
+            callingActivity = picker.callingActivity
+            callingPackage = picker.callingPackage
+        }
+        Log.i("AutofillVisibilityTest", "picker: callingActivity=$callingActivity callingPackage=$callingPackage")
+
+        assertEquals(
+            "callingActivity=$callingActivity callingPackage=$callingPackage",
+            HIDDEN,
+            callingActivity?.packageName
+        )
+        assertEquals(HIDDEN, callingPackage)
     }
 
     // ------------------------------------------------------------------ helpers
