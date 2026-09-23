@@ -5,6 +5,20 @@ plugins {
   alias(libs.plugins.roborazzi)
 }
 
+// Built from :autofilltarget. It is a separate app on purpose: a form in com.obscura.test is always
+// visible to Obscura through the instrumentation, so it cannot catch package-visibility bugs.
+val autofillTargetApks = layout.buildDirectory.dir("generated/autofillTargetApks").get().asFile
+val packAutofillTargetApks = tasks.register<Sync>("packAutofillTargetApks") {
+  dependsOn(":autofilltarget:assembleLaunchableDebug", ":autofilltarget:assembleHiddenDebug")
+  from(rootProject.layout.projectDirectory.dir("autofilltarget/build/outputs/apk")) {
+    include("launchable/debug/*.apk", "hidden/debug/*.apk")
+    eachFile { path = "autofilltarget-${file.parentFile.parentFile.name}.apk" }
+  }
+  includeEmptyDirs = false
+  into(autofillTargetApks)
+}
+tasks.matching { it.name.endsWith("AndroidTestAssets") }.configureEach { dependsOn(packAutofillTargetApks) }
+
 android {
   namespace = "com.obscura"
   compileSdk { version = release(37) }
@@ -38,6 +52,8 @@ android {
   testOptions { unitTests { isIncludeAndroidResources = true } }
   // Exported Room schemas: needed to write real migrations and to test them.
   sourceSets["androidTest"].assets.srcDir("$projectDir/schemas")
+  // The autofill target app, packed into the test APK and installed by the test itself.
+  sourceSets["androidTest"].assets.srcDir(autofillTargetApks)
   dependenciesInfo {
     includeInApk = false
     includeInBundle = true

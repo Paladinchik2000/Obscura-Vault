@@ -25,3 +25,5 @@ dependencyResolutionManagement {
 rootProject.name = "Obscura"
 
 include(":app")
+// Login form in a package of its own, for the autofill end-to-end tests.
+include(":autofilltarget")
