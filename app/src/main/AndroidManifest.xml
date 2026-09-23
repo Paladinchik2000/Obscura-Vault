@@ -5,6 +5,17 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" android:maxSdkVersion="28" />
 
+    <!-- Autofill has to read the signing certificate of the app it fills, and since Android 11
+         another app's package is invisible unless declared here. The system binding our autofill
+         service does not change that. Apps with a launcher icon cover nearly every login form;
+         the rest get only the manual choice. QUERY_ALL_PACKAGES is deliberately not used. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <!-- Every activity is portrait-only: the PIN keypad does not fit a landscape phone screen, and the
          autofill prompt can open on top of another app that is in landscape. -->
     <application
