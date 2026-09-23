@@ -61,13 +61,22 @@ class ObscuraAutofillService : AutofillService() {
         }
 
         val form = AutofillFormParser.parse(structure)
-        val identity = CallerIdentity.of(this, callerPackage)
-        if (!form.isFillable || identity == null) {
+        if (!form.isFillable) {
             callback.onSuccess(null)
             return
         }
 
         val responses = AutofillResponses(this)
+
+        // The caller's package is not visible to us (an app without a launcher icon falls outside
+        // our <queries>), so its certificate cannot be read and nothing may be matched to it —
+        // neither by link nor by domain. The manual choice still works. Answering null instead
+        // would look exactly like "no matching entries" and hide the failure.
+        val identity = CallerIdentity.of(this, callerPackage)
+        if (identity == null) {
+            callback.onSuccess(responses.datasetsResponse(emptyList(), form, pickPendingIntent(form, callerPackage)))
+            return
+        }
 
         if (!VaultSession.isUnlocked.value) {
             callback.onSuccess(responses.lockedResponse(form, unlockPendingIntent(form, callerPackage)))
