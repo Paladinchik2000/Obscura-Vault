@@ -1,10 +1,16 @@
 package com.obscura.autofill
 
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import android.view.View
+import android.view.autofill.AutofillId
+import androidx.lifecycle.Lifecycle
+import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
@@ -238,6 +244,89 @@ class AutofillPackageVisibilityTest {
     }
 
     /**
+     * The unlock step: a screen whose intent names an app, but which that app did not start,
+     * must not hand back that app's linked entries. The app here is fully visible and its link
+     * is valid — the only thing wrong is who started the screen — so without the check the
+     * entry would be answered at once.
+     */
+    @Test
+    fun theUnlockStepOffersNothingLinkedWhenTheNamedAppDidNotStartIt() {
+        install("autofilltarget-launchable.apk")
+        createVaultWithEntryLinkedTo(LAUNCHABLE)
+
+        launchScreenClaiming(LAUNCHABLE, pick = false).use { scenario ->
+            // Unconfirmed: nothing matched, so the plain list instead of an answer.
+            assertTrue(
+                "the linked entry must not be answered; the manual list must show instead",
+                waitFor(By.pkg("com.obscura").text("Choose an entry"))
+            )
+            assertEquals(Lifecycle.State.RESUMED, scenario.state)
+        }
+    }
+
+    /**
+     * The picker: for a caller it cannot confirm it neither applies links nor offers to save one.
+     * Picking an unlinked entry fills straight away, with no "Remember this choice?", and no
+     * link is written.
+     */
+    @Test
+    fun thePickerNeitherAppliesNorSavesLinksWhenTheNamedAppDidNotStartIt() {
+        install("autofilltarget-launchable.apk")
+        createVault { entry("e1", ENTRY_TITLE) }
+
+        launchScreenClaiming(LAUNCHABLE, pick = true).use { scenario ->
+            waitForPickerRow(ENTRY_TITLE).click()
+            assertTrue(
+                "an unconfirmed caller must not be asked to remember a link",
+                waitUntilFinished(scenario)
+            )
+            assertEquals(Activity.RESULT_OK, scenario.result.resultCode)
+        }
+        assertEquals(emptyList<String>(), appLinkCertificates("e1", LAUNCHABLE))
+    }
+
+    /**
+     * The unlock step is started differently from the picker — as the authentication of the whole
+     * response, not of one dataset — so it is measured separately: the app is known here too, and
+     * after the PIN the linked entry comes back as a suggestion rather than through the picker,
+     * which is what an unconfirmed caller would get.
+     */
+    @Test
+    fun theUnlockStepKnowsWhichAppStartedItAndAnswersWithTheLinkedEntry() {
+        install("autofilltarget-launchable.apk")
+        createVaultWithEntryLinkedTo(LAUNCHABLE)
+        runBlocking { VaultSession.lock() }
+
+        startForm(LAUNCHABLE)
+        assertTrue(waitFor(By.text("Unlock Obscura")))
+        device.findObject(By.text("Unlock Obscura")).click()
+        assertTrue("the unlock screen must come up", waitFor(By.pkg("com.obscura").textContains("Enter your PIN")))
+
+        val (callingActivity, callingPackage) = resumedUnlockScreenCaller()
+        Log.i("AutofillVisibilityTest", "unlock step: callingActivity=$callingActivity callingPackage=$callingPackage")
+        assertEquals(
+            "callingActivity=$callingActivity callingPackage=$callingPackage",
+            LAUNCHABLE,
+            callingActivity?.packageName
+        )
+
+        PIN.forEach { digit ->
+            val key = device.wait(Until.findObject(By.pkg("com.obscura").text(digit.toString())), TIMEOUT_MS)
+            assertNotNull("keypad digit $digit", key)
+            key.click()
+        }
+
+        // Confirmed: the answer is the entry itself, not the manual list.
+        assertTrue("the linked entry must be suggested after unlocking", waitFor(By.text(ENTRY_TITLE)))
+        assertNull(
+            "a confirmed caller must not be sent to the manual list",
+            device.findObject(By.pkg("com.obscura").text("Choose an entry"))
+        )
+        device.findObject(By.text(ENTRY_TITLE)).click()
+        assertTrue(waitFor(By.pkg(LAUNCHABLE).text(FILLED_CORRECTLY)))
+    }
+
+    /**
      * The picker is started by the system from the app being filled, through our immutable
      * PendingIntent. Whether it can tell who that app is decides whether the package name in the
      * intent can be checked at all — so this is measured here rather than assumed.
@@ -252,16 +341,7 @@ class AutofillPackageVisibilityTest {
         device.findObject(By.text("Search Obscura")).click()
         assertTrue("the picker must come up", waitFor(By.pkg("com.obscura").text(ENTRY_TITLE)))
 
-        var callingActivity: ComponentName? = null
-        var callingPackage: String? = null
-        instrumentation.runOnMainSync {
-            val picker = ActivityLifecycleMonitorRegistry.getInstance()
-                .getActivitiesInStage(Stage.RESUMED)
-                .filterIsInstance<AutofillUnlockActivity>()
-                .single()
-            callingActivity = picker.callingActivity
-            callingPackage = picker.callingPackage
-        }
+        val (callingActivity, callingPackage) = resumedUnlockScreenCaller()
         Log.i("AutofillVisibilityTest", "picker: callingActivity=$callingActivity callingPackage=$callingPackage")
 
         assertEquals(
@@ -298,6 +378,45 @@ class AutofillPackageVisibilityTest {
     }
 
     private fun waitFor(selector: BySelector): Boolean = device.wait(Until.hasObject(selector), TIMEOUT_MS) == true
+
+    /**
+     * Starts our autofill screen directly, with an intent that names [pkg] as the app being
+     * filled. The test's own activity starts it, so the system reports a different caller — the
+     * case the screens have to refuse.
+     */
+    private fun launchScreenClaiming(pkg: String, pick: Boolean): ActivityScenario<AutofillUnlockActivity> {
+        var ids: Pair<AutofillId, AutofillId>? = null
+        instrumentation.runOnMainSync { ids = View(context).autofillId to View(context).autofillId }
+        val intent = Intent(context, AutofillUnlockActivity::class.java)
+            .putExtra(AutofillUnlockActivity.EXTRA_CALLER_PACKAGE, pkg)
+            .putExtra(AutofillUnlockActivity.EXTRA_USERNAME_ID, ids!!.first)
+            .putExtra(AutofillUnlockActivity.EXTRA_PASSWORD_ID, ids!!.second)
+            .putExtra(AutofillUnlockActivity.EXTRA_PICK, pick)
+            .putExtra(AutofillUnlockActivity.EXTRA_RESULT_IS_DATASET, pick)
+        return ActivityScenario.launchActivityForResult(intent)
+    }
+
+    private fun waitUntilFinished(scenario: ActivityScenario<*>): Boolean {
+        val deadline = System.currentTimeMillis() + TIMEOUT_MS
+        while (System.currentTimeMillis() < deadline) {
+            if (scenario.state == Lifecycle.State.DESTROYED) return true
+            Thread.sleep(100)
+        }
+        return false
+    }
+
+    /** Who the system says started our autofill screen that is on top right now. */
+    private fun resumedUnlockScreenCaller(): Pair<ComponentName?, String?> {
+        var result: Pair<ComponentName?, String?> = null to null
+        instrumentation.runOnMainSync {
+            val screen = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<AutofillUnlockActivity>()
+                .single()
+            result = screen.callingActivity to screen.callingPackage
+        }
+        return result
+    }
 
     private fun waitForPickerRow(title: String): UiObject2 {
         val row = device.wait(Until.findObject(By.pkg("com.obscura").text(title)), TIMEOUT_MS)

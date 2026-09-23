@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.obscura.autofill.match.CallerIdentity
+import com.obscura.autofill.match.ConfirmedCaller
 import com.obscura.autofill.match.DomainMatcher
 import com.obscura.autofill.match.PublicSuffixList
 import com.obscura.data.local.EntryLink
@@ -58,6 +59,14 @@ class AutofillUnlockActivity : FragmentActivity() {
     private val responses by lazy { AutofillResponses(this) }
     private var resultIsDataset = false
 
+    /**
+     * The app being filled, confirmed once for both steps of this screen — unlocking and
+     * picking. Null means nothing is matched to it, no link is applied and none is saved.
+     */
+    private val caller: ConfirmedCaller? by lazy {
+        ConfirmedCaller.confirm(callerPackage, callingActivity?.packageName) { CallerIdentity.of(this, it) }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
@@ -90,11 +99,11 @@ class AutofillUnlockActivity : FragmentActivity() {
         }
 
         lifecycleScope.launch {
-            val identity = CallerIdentity.of(this@AutofillUnlockActivity, callerPackage)
-            val matches = if (identity == null) {
+            val confirmed = caller
+            val matches = if (confirmed == null) {
                 emptyList()
             } else {
-                runCatching { responses.matchingEntries(responses.targetFor(identity, form)) }
+                runCatching { responses.matchingEntries(responses.targetFor(confirmed.identity, form)) }
                     .getOrDefault(emptyList())
             }
 
@@ -105,16 +114,16 @@ class AutofillUnlockActivity : FragmentActivity() {
 
     private fun showPicker() {
         lifecycleScope.launch {
-            val caller = confirmedCaller()
+            val confirmed = caller
             val entries = runCatching { loginEntries() }.getOrDefault(emptyList())
             // An app Obscura cannot see from the fill request can still have been linked
             // earlier: here, with the caller confirmed, that link counts — its entries come
             // first and are picked without asking to remember them again.
-            val linked = caller
-                ?.let { runCatching { responses.entryIdsLinkedTo(it) }.getOrDefault(emptySet()) }
+            val linked = confirmed
+                ?.let { runCatching { responses.entryIdsLinkedTo(it.identity) }.getOrDefault(emptySet()) }
                 .orEmpty()
             val ordered = entries.sortedByDescending { it.id in linked }
-            val label = caller?.let { targetLabel(it) }
+            val label = confirmed?.let { targetLabel(it.identity) }
 
             setContent {
                 ObscuraTheme {
@@ -122,28 +131,14 @@ class AutofillUnlockActivity : FragmentActivity() {
                         entries = ordered,
                         targetLabel = label,
                         linkedIds = linked,
-                        onPick = { entry, link -> onEntryPicked(entry, link, caller) }
+                        onPick = { entry, link -> onEntryPicked(entry, link, confirmed) }
                     )
                 }
             }
         }
     }
 
-    /**
-     * The app being filled, when it can be confirmed; null leaves the picker as a plain list with
-     * no links applied and none offered.
-     *
-     * Two conditions. The package in our intent must be the app that actually started this screen
-     * — the system reports it as the calling activity, since the app starts us for a result. And
-     * its certificate must be readable: by now that normally works even for an app outside our
-     * <queries>, because starting us for a result made it visible to us.
-     */
-    private fun confirmedCaller(): CallerIdentity? {
-        if (callingActivity?.packageName != callerPackage) return null
-        return CallerIdentity.of(this, callerPackage)
-    }
-
-    private fun onEntryPicked(entry: VaultEntity, link: Boolean, caller: CallerIdentity?) {
+    private fun onEntryPicked(entry: VaultEntity, link: Boolean, caller: ConfirmedCaller?) {
         lifecycleScope.launch {
             if (link && caller != null) runCatching { saveLink(entry, caller) }
             answerWith(responses.datasetsResponse(listOf(entry), form), entry)
@@ -151,7 +146,8 @@ class AutofillUnlockActivity : FragmentActivity() {
     }
 
     /** Remembers the choice, so next time the entry is offered without asking. */
-    private suspend fun saveLink(entry: VaultEntity, identity: CallerIdentity) {
+    private suspend fun saveLink(entry: VaultEntity, caller: ConfirmedCaller) {
+        val identity = caller.identity
         val host = responses.targetFor(identity, form).webHost
 
         val link = if (host != null) {
