@@ -12,6 +12,7 @@ import androidx.test.runner.lifecycle.Stage
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import com.obscura.autofill.match.CallerIdentity
 import com.obscura.data.Preferences
@@ -54,6 +55,8 @@ class AutofillPackageVisibilityTest {
         const val USERNAME = "octocat"
         const val PASSWORD = "s3cret-Passw0rd!"
         const val ENTRY_TITLE = "GitHub test"
+        const val OTHER_TITLE = "Another account"
+        const val FOREIGN_CERT = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
         const val SERVICE = "com.obscura/com.obscura.autofill.ObscuraAutofillService"
         const val TIMEOUT_MS = 15_000L
 
@@ -121,36 +124,117 @@ class AutofillPackageVisibilityTest {
     }
 
     /**
-     * An app outside <queries>: its certificate cannot be read, so nothing may be matched to it
-     * even though a link exists — but the answer must not be empty, or the failure is invisible.
+     * An app outside <queries>: in the fill request its certificate cannot be read, so nothing
+     * may be offered to it even though a link exists — but the answer must not be empty, or the
+     * failure is invisible. In the picker the app is visible (it started the picker for a
+     * result), the certificate matches the link, and the link counts: the entry comes first and
+     * is filled without asking to remember it again.
      */
     @Test
-    fun anAppObscuraCannotSeeStillGetsTheManualChoiceAndNothingElse() {
+    fun aLinkToAnAppObscuraCannotSeeIsAppliedInThePickerWithoutAsking() {
         install("autofilltarget-hidden.apk")
-        createVaultWithEntryLinkedTo(HIDDEN)
+        createVault {
+            // Written first, so without the link it would come first too.
+            entry("e2", OTHER_TITLE)
+            entry("e1", ENTRY_TITLE)
+            appLink("e1", HIDDEN, debugCertificate())
+        }
 
         startForm(HIDDEN)
         assertTrue("the manual choice must be offered", waitFor(By.text("Search Obscura")))
         assertNull(
-            "without a certificate the linked entry must not be offered",
+            "without a certificate the linked entry must not be offered in the fill request",
             device.findObject(By.text(ENTRY_TITLE))
         )
 
-        // And the manual choice actually works: pick the entry by hand, and it lands in the form.
         device.findObject(By.text("Search Obscura")).click()
-        val row = device.wait(Until.findObject(By.pkg("com.obscura").text(ENTRY_TITLE)), TIMEOUT_MS)
-        assertNotNull("the picker must list the entry", row)
-        row.click()
+        val linkedRow = waitForPickerRow(ENTRY_TITLE)
+        val otherRow = waitForPickerRow(OTHER_TITLE)
+        assertTrue(
+            "the linked entry must come first",
+            linkedRow.visibleBounds.top < otherRow.visibleBounds.top
+        )
 
-        // By now the app is no longer invisible: it started our picker for a result, and the
-        // system grants the started app visibility of the one waiting for the result
-        // (ActivityStarter, grantImplicitAccess). The certificate is read from the real package
-        // at this point, so the picker may offer to remember the choice.
-        val once = device.wait(Until.findObject(By.pkg("com.obscura").text("Just this once")), TIMEOUT_MS)
-        assertNotNull("the picker offers to remember the choice once the app is visible", once)
-        once.click()
+        linkedRow.click()
+        // A "Remember this choice?" dialog would stop the fill here.
+        assertTrue("the linked entry must fill without a question", waitFor(By.pkg(HIDDEN).text(FILLED_CORRECTLY)))
+        assertEquals(listOf(debugCertificate()), appLinkCertificates("e1", HIDDEN))
+    }
 
-        assertTrue("the form was not filled with the picked entry", waitFor(By.pkg(HIDDEN).text(FILLED_CORRECTLY)))
+    /**
+     * A link made for another signature (another app that used the same package name) is not a
+     * link to this app: the picker treats the entry as unlinked and asks. Remembering it then
+     * replaces the old link instead of adding a second row.
+     */
+    @Test
+    fun aLinkWithAForeignCertificateIsNotAppliedAndRelinkingReplacesIt() {
+        install("autofilltarget-hidden.apk")
+        createVault {
+            entry("e1", ENTRY_TITLE)
+            appLink("e1", HIDDEN, FOREIGN_CERT)
+        }
+
+        startForm(HIDDEN)
+        assertTrue(waitFor(By.text("Search Obscura")))
+        device.findObject(By.text("Search Obscura")).click()
+        waitForPickerRow(ENTRY_TITLE).click()
+
+        val remember = device.wait(Until.findObject(By.pkg("com.obscura").text("Remember")), TIMEOUT_MS)
+        assertNotNull("a link with another certificate must not count: the picker has to ask", remember)
+        remember.click()
+        assertTrue("the form was not filled", waitFor(By.pkg(HIDDEN).text(FILLED_CORRECTLY)))
+
+        assertEquals(
+            "linking again must replace the link, not add a second one",
+            listOf(debugCertificate()),
+            appLinkCertificates("e1", HIDDEN)
+        )
+    }
+
+    /**
+     * The visibility the picker gets lives only in system_server: it outlasts the target app's
+     * process, but an update of the target app drops it. Before the update the fill request
+     * itself offers the linked entry; after it, only "Search Obscura" again, and the link still
+     * works in the picker.
+     */
+    @Test
+    fun afterAnUpdateTheAppIsInvisibleAgainAndTheLinkStillWorksInThePicker() {
+        install("autofilltarget-hidden.apk")
+        createVault {
+            entry("e1", ENTRY_TITLE)
+            appLink("e1", HIDDEN, debugCertificate())
+        }
+
+        // First fill: invisible, so through the picker; starting it makes the app visible to us.
+        startForm(HIDDEN)
+        assertTrue(waitFor(By.text("Search Obscura")))
+        assertNull(device.findObject(By.text(ENTRY_TITLE)))
+        device.findObject(By.text("Search Obscura")).click()
+        waitForPickerRow(ENTRY_TITLE).click()
+        assertTrue(waitFor(By.pkg(HIDDEN).text(FILLED_CORRECTLY)))
+
+        // startForm force-stops the app first: the grant outlives its process, and the fill
+        // request itself now recognises the app.
+        startForm(HIDDEN)
+        assertTrue(
+            "while the app is visible the linked entry is offered directly",
+            waitFor(By.text(ENTRY_TITLE))
+        )
+        device.pressBack()
+
+        // An update of the target app drops the grant.
+        install("autofilltarget-hidden.apk")
+
+        startForm(HIDDEN)
+        assertTrue(waitFor(By.text("Search Obscura")))
+        assertNull("after the update the app is invisible again", device.findObject(By.text(ENTRY_TITLE)))
+        device.findObject(By.text("Search Obscura")).click()
+        waitForPickerRow(ENTRY_TITLE).click()
+        assertTrue(
+            "the link still works in the picker, without a question",
+            waitFor(By.pkg(HIDDEN).text(FILLED_CORRECTLY))
+        )
+        assertEquals(listOf(debugCertificate()), appLinkCertificates("e1", HIDDEN))
     }
 
     /**
@@ -205,7 +289,7 @@ class AutofillPackageVisibilityTest {
      */
     private fun startForm(pkg: String) {
         shell(
-            "am start -W -n $pkg/$ACTIVITY " +
+            "am start -W -S -n $pkg/$ACTIVITY " +
                 "--es expected_username $USERNAME --es expected_password $PASSWORD"
         )
         val field = device.wait(Until.findObject(By.pkg(pkg).res(Pattern.compile(".*:id/username"))), TIMEOUT_MS)
@@ -215,29 +299,60 @@ class AutofillPackageVisibilityTest {
 
     private fun waitFor(selector: BySelector): Boolean = device.wait(Until.hasObject(selector), TIMEOUT_MS) == true
 
+    private fun waitForPickerRow(title: String): UiObject2 {
+        val row = device.wait(Until.findObject(By.pkg("com.obscura").text(title)), TIMEOUT_MS)
+        assertNotNull("the picker must list $title", row)
+        return row
+    }
+
     /**
-     * The target app is built and signed like the test APKs, with the debug key — the same
+     * The target app is built and signed like the test APKs, with the debug key: the same
      * certificate Obscura itself carries, and Obscura can always read its own.
      */
-    private fun createVaultWithEntryLinkedTo(pkg: String) = runBlocking {
-        val cert = CallerIdentity.of(context, context.packageName)?.currentCertificateHash
-        assertNotNull(cert)
+    private fun debugCertificate(): String =
+        requireNotNull(CallerIdentity.of(context, context.packageName)).currentCertificateHash
 
+    private fun createVaultWithEntryLinkedTo(pkg: String) = createVault {
+        entry("e1", ENTRY_TITLE)
+        appLink("e1", pkg, debugCertificate())
+    }
+
+    private class VaultContents {
+        val entries = mutableListOf<VaultEntity>()
+        val links = mutableListOf<EntryLink>()
+
+        fun entry(id: String, title: String) {
+            entries += VaultEntity(
+                id = id,
+                title = title,
+                category = VaultCategory.ACCOUNT.id,
+                usernameOrCardholder = USERNAME,
+                secretValue = PASSWORD
+            )
+        }
+
+        fun appLink(entryId: String, pkg: String, cert: String) {
+            links += EntryLink(entryId = entryId, type = LinkType.APP.id, value = pkg, certSha256 = cert)
+        }
+    }
+
+    private fun createVault(fill: VaultContents.() -> Unit) = runBlocking {
+        val contents = VaultContents().apply(fill)
         val dek = AuthRepository(context).createVault(PIN.toCharArray())
         VaultSession.unlock(context, dek)
         VaultSession.runInSession {
             val dao = VaultSession.requireDatabase().vaultDao()
-            dao.insertEntry(
-                VaultEntity(
-                    id = "e1",
-                    title = ENTRY_TITLE,
-                    category = VaultCategory.ACCOUNT.id,
-                    usernameOrCardholder = USERNAME,
-                    secretValue = PASSWORD
-                )
-            )
-            dao.insertLink(EntryLink(entryId = "e1", type = LinkType.APP.id, value = pkg, certSha256 = cert!!))
-            assertEquals(1, dao.getAllLinksDirect().size)
+            contents.entries.forEach { dao.insertEntry(it) }
+            contents.links.forEach { dao.insertLink(it) }
+        }
+    }
+
+    /** Certificates of every app link from [entryId] to [pkg]; more than one means a duplicate. */
+    private fun appLinkCertificates(entryId: String, pkg: String): List<String> = runBlocking {
+        VaultSession.runInSession {
+            VaultSession.requireDatabase().vaultDao().linksByValue(LinkType.APP.id, pkg)
+                .filter { it.entryId == entryId }
+                .map { it.certSha256 }
         }
     }
 

@@ -105,31 +105,53 @@ class AutofillUnlockActivity : FragmentActivity() {
 
     private fun showPicker() {
         lifecycleScope.launch {
+            val caller = confirmedCaller()
             val entries = runCatching { loginEntries() }.getOrDefault(emptyList())
-            val label = targetLabel()
+            // An app Obscura cannot see from the fill request can still have been linked
+            // earlier: here, with the caller confirmed, that link counts — its entries come
+            // first and are picked without asking to remember them again.
+            val linked = caller
+                ?.let { runCatching { responses.entryIdsLinkedTo(it) }.getOrDefault(emptySet()) }
+                .orEmpty()
+            val ordered = entries.sortedByDescending { it.id in linked }
+            val label = caller?.let { targetLabel(it) }
 
             setContent {
                 ObscuraTheme {
                     AutofillPickerScreen(
-                        entries = entries,
+                        entries = ordered,
                         targetLabel = label,
-                        onPick = { entry, link -> onEntryPicked(entry, link) }
+                        linkedIds = linked,
+                        onPick = { entry, link -> onEntryPicked(entry, link, caller) }
                     )
                 }
             }
         }
     }
 
-    private fun onEntryPicked(entry: VaultEntity, link: Boolean) {
+    /**
+     * The app being filled, when it can be confirmed; null leaves the picker as a plain list with
+     * no links applied and none offered.
+     *
+     * Two conditions. The package in our intent must be the app that actually started this screen
+     * — the system reports it as the calling activity, since the app starts us for a result. And
+     * its certificate must be readable: by now that normally works even for an app outside our
+     * <queries>, because starting us for a result made it visible to us.
+     */
+    private fun confirmedCaller(): CallerIdentity? {
+        if (callingActivity?.packageName != callerPackage) return null
+        return CallerIdentity.of(this, callerPackage)
+    }
+
+    private fun onEntryPicked(entry: VaultEntity, link: Boolean, caller: CallerIdentity?) {
         lifecycleScope.launch {
-            if (link) runCatching { saveLink(entry) }
+            if (link && caller != null) runCatching { saveLink(entry, caller) }
             answerWith(responses.datasetsResponse(listOf(entry), form), entry)
         }
     }
 
     /** Remembers the choice, so next time the entry is offered without asking. */
-    private suspend fun saveLink(entry: VaultEntity) {
-        val identity = CallerIdentity.of(this, callerPackage) ?: return
+    private suspend fun saveLink(entry: VaultEntity, identity: CallerIdentity) {
         val host = responses.targetFor(identity, form).webHost
 
         val link = if (host != null) {
@@ -155,8 +177,7 @@ class AutofillUnlockActivity : FragmentActivity() {
         }
 
     /** What to call the request in the link question: the site, or the app's own name. */
-    private fun targetLabel(): String? {
-        val identity = CallerIdentity.of(this, callerPackage) ?: return null
+    private fun targetLabel(identity: CallerIdentity): String {
         responses.targetFor(identity, form).webHost?.let { return it }
         return runCatching {
             val info = packageManager.getApplicationInfo(callerPackage, 0)

@@ -49,6 +49,8 @@ fun AutofillPickerScreen(
     entries: List<VaultEntity>,
     /** Where the request came from, e.g. an app label or a host; null hides the link offer. */
     targetLabel: String?,
+    /** Entries already linked to this caller: picked without asking to remember them again. */
+    linkedIds: Set<String> = emptySet(),
     onPick: (entry: VaultEntity, link: Boolean) -> Unit
 ) {
     var query by remember { mutableStateOf("") }
@@ -102,7 +104,11 @@ fun AutofillPickerScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                if (targetLabel == null) onPick(entry, false) else pending = entry
+                                if (targetLabel == null || entry.id in linkedIds) {
+                                    onPick(entry, false)
+                                } else {
+                                    pending = entry
+                                }
                             }
                             .padding(vertical = 12.dp)
                     ) {

@@ -51,6 +51,14 @@ class AutofillResponses(private val context: Context) {
         }
 
     /**
+     * Entries the user has already tied to this app: package plus a certificate the app is
+     * signed with. The app rule alone — a domain does not count here. Runs in the vault session.
+     */
+    suspend fun entryIdsLinkedTo(identity: CallerIdentity): Set<String> =
+        matchingEntries(FillTarget(identity.packageName, identity.certificateHashes))
+            .mapTo(HashSet()) { it.id }
+
+    /**
      * One dataset per entry, plus a way into the manual choice. [search] is null when the caller
      * already is the picker, and then an empty list means there is nothing to answer with.
      */
