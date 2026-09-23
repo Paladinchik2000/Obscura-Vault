@@ -235,4 +235,21 @@
     <string name="autofill_link_message">Offer “%1$s” for %2$s from now on?</string>
     <string name="autofill_link_confirm">Remember</string>
     <string name="autofill_link_decline">Just this once</string>
+    <string name="autofill_save_title">Save to Obscura</string>
+    <string name="autofill_save_entry_title">Title</string>
+    <string name="autofill_save_username">Username: %1$s</string>
+    <string name="autofill_save_no_username">No username</string>
+    <string name="autofill_save_unconfirmed">Obscura can\'t confirm this app yet, so this login won\'t be suggested here automatically. Pick it from “Search Obscura” next time to link it.</string>
+    <string name="autofill_save_confirm">Save</string>
+    <string name="autofill_save_unlock_and_save">Unlock and save</string>
+    <string name="autofill_save_cancel">Not now</string>
+    <string name="autofill_save_change_title">Update password?</string>
+    <string name="autofill_save_change_message">You already have a login with this username. Updating replaces its old password.</string>
+    <string name="autofill_save_update">Update “%1$s”</string>
+    <string name="autofill_save_as_new">Save as new</string>
+    <string name="autofill_save_done">Saved to Obscura</string>
+    <string name="autofill_save_updated">Password updated</string>
+    <string name="autofill_save_already">Already saved in Obscura</string>
+    <string name="autofill_save_gone">Nothing to save. Sign in again to save this login.</string>
+    <string name="autofill_save_failed">Couldn\'t save the login</string>
 </resources>

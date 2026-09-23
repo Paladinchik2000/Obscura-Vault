@@ -8,7 +8,6 @@ import androidx.core.content.ContextCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.obscura.autofill.match.CallerIdentity
@@ -25,7 +24,6 @@ import com.obscura.ui.settings.AutoLockOption
 import com.obscura.ui.settings.AutoLockSettings
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -55,8 +53,6 @@ class AutofillEndToEndTest {
         const val SERVICE = "com.obscura/com.obscura.autofill.ObscuraAutofillService"
         const val TIMEOUT_MS = 15_000L
 
-        /** The system's own save prompt: its buttons come from the platform, not from us. */
-        val SAVE_DIALOG: BySelector = By.res("android", "autofill_save_yes")
     }
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -161,33 +157,6 @@ class AutofillEndToEndTest {
         assertFormWasFilled()
     }
 
-    /**
-     * The framework only offers "Save to Obscura?" when the response carries a SaveInfo. Saving is
-     * not implemented, so nothing may ask: a dialog answered with "Yes" that saves nothing would
-     * leave the user believing a password is in the vault when it is not.
-     */
-    @Test
-    fun theUserIsNeverOfferedASaveThatWouldNotHappen() {
-        createVaultWithLinkedEntry()
-
-        startLoginForm()
-        tapUsernameField()
-        // Our answer arrived, so there is a live autofill session to save from.
-        assertTrue(waitForSuggestion(ENTRY_TITLE))
-        device.pressBack()
-
-        // Typed by hand, not autofilled: a value that came from the fill itself is never offered
-        // for saving anyway, so this is the case that would actually raise the dialog.
-        typeInto("username", "typed-by-hand")
-        typeInto("password", "typed-by-hand-too")
-        device.findObject(By.res(TEST_PACKAGE, "submit")).click()
-
-        assertFalse(
-            "a save dialog promises a save that the service does not perform",
-            device.wait(Until.hasObject(SAVE_DIALOG), 5_000L) == true
-        )
-    }
-
     // ------------------------------------------------------------------ helpers
 
     /**
@@ -219,13 +188,6 @@ class AutofillEndToEndTest {
         val field = device.wait(Until.findObject(By.res(TEST_PACKAGE, "username")), TIMEOUT_MS)
         assertNotNull("the test form must be on screen", field)
         field.click()
-    }
-
-    private fun typeInto(viewId: String, text: String) {
-        val field = device.wait(Until.findObject(By.res(TEST_PACKAGE, viewId)), TIMEOUT_MS)
-        assertNotNull("field $viewId", field)
-        field.click()
-        field.text = text
     }
 
     private fun waitForSuggestion(text: String): Boolean =

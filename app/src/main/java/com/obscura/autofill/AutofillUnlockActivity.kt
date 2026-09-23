@@ -108,7 +108,7 @@ class AutofillUnlockActivity : FragmentActivity() {
             }
 
             // Nothing matched: rather than an empty answer, offer the manual choice right away.
-            if (matches.isEmpty()) showPicker() else answerWith(responses.datasetsResponse(matches, form))
+            if (matches.isEmpty()) showPicker() else answerWith(responses.datasetsResponse(matches, form, callerPackage))
         }
     }
 
@@ -141,7 +141,7 @@ class AutofillUnlockActivity : FragmentActivity() {
     private fun onEntryPicked(entry: VaultEntity, link: Boolean, caller: ConfirmedCaller?) {
         lifecycleScope.launch {
             if (link && caller != null) runCatching { saveLink(entry, caller) }
-            answerWith(responses.datasetsResponse(listOf(entry), form), entry)
+            answerWith(responses.datasetsResponse(listOf(entry), form, callerPackage), entry)
         }
     }
 

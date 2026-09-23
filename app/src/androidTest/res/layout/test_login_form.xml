@@ -23,11 +23,4 @@
         android:importantForAutofill="yes"
         android:autofillHints="password"
         android:inputType="textPassword" />
-
-    <!-- Submitting is what makes the framework decide whether to offer a save. -->
-    <Button
-        android:id="@+id/submit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sign in" />
 </LinearLayout>

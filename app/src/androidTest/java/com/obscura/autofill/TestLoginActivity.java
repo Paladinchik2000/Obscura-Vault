@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.view.autofill.AutofillManager;
-import android.widget.Button;
 import android.widget.EditText;
 
 import com.obscura.test.R;
@@ -40,19 +38,6 @@ public class TestLoginActivity extends Activity {
         final EditText password = findViewById(R.id.password);
         final String expectedUsername = stringExtra(EXTRA_EXPECTED_USERNAME);
         final String expectedPassword = stringExtra(EXTRA_EXPECTED_PASSWORD);
-
-        Button submit = findViewById(R.id.submit);
-        submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // What a real app does when the user signs in: the autofill context is committed,
-                // and the framework decides here whether to offer saving what was typed.
-                AutofillManager autofill = getSystemService(AutofillManager.class);
-                if (autofill != null) {
-                    autofill.commit();
-                }
-            }
-        });
 
         TextWatcher watcher = new TextWatcher() {
             @Override

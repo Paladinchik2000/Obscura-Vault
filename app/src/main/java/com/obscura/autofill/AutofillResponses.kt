@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.service.autofill.Dataset
 import android.service.autofill.FillResponse
+import android.service.autofill.SaveInfo
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
@@ -16,6 +17,7 @@ import com.obscura.autofill.match.DomainMatcher
 import com.obscura.autofill.match.EntryWithLinks
 import com.obscura.autofill.match.FillTarget
 import com.obscura.autofill.match.PublicSuffixList
+import com.obscura.autofill.save.SavePolicy
 import com.obscura.data.local.VaultEntity
 import com.obscura.security.VaultSession
 
@@ -65,12 +67,32 @@ class AutofillResponses(private val context: Context) {
     fun datasetsResponse(
         entries: List<VaultEntity>,
         form: ParsedForm,
+        callerPackage: String,
         search: PendingIntent? = null
     ): FillResponse? {
         if (entries.isEmpty() && search == null) return null
         val builder = FillResponse.Builder()
         entries.forEach { entry -> builder.addDataset(datasetFor(entry, form)) }
         search?.let { builder.addDataset(searchDataset(form, it)) }
+        saveInfoFor(form, callerPackage)?.let { builder.setSaveInfo(it) }
+        return builder.build()
+    }
+
+    /**
+     * Asks the system to offer saving what the user types into this form. Only where the save
+     * really happens (see [SavePolicy]); the system itself skips the offer when nothing was typed
+     * or the values are exactly those of a dataset it was given.
+     */
+    private fun saveInfoFor(form: ParsedForm, callerPackage: String): SaveInfo? {
+        val password = form.passwordId ?: return null
+        if (!SavePolicy.offersSave(Build.VERSION.SDK_INT, callerPackage, context.packageName, hasPasswordField = true)) {
+            return null
+        }
+        val builder = SaveInfo.Builder(
+            SaveInfo.SAVE_DATA_TYPE_PASSWORD or SaveInfo.SAVE_DATA_TYPE_USERNAME,
+            arrayOf(password)
+        )
+        form.usernameId?.let { builder.setOptionalIds(arrayOf(it)) }
         return builder.build()
     }
 
@@ -91,17 +113,22 @@ class AutofillResponses(private val context: Context) {
     }
 
     /** The vault is locked: one authentication step that opens our unlock screen. */
-    fun lockedResponse(form: ParsedForm, unlock: PendingIntent): FillResponse =
-        FillResponse.Builder()
+    fun lockedResponse(form: ParsedForm, callerPackage: String, unlock: PendingIntent): FillResponse {
+        val builder = FillResponse.Builder()
             .setAuthentication(
                 form.autofillIds(),
                 unlock.intentSender,
                 presentation(context.getString(R.string.autofill_unlock_title), context.getString(R.string.autofill_unlock_subtitle))
             )
-            .build()
+        // A login typed by hand into a form whose vault stayed locked can still be saved.
+        saveInfoFor(form, callerPackage)?.let { builder.setSaveInfo(it) }
+        return builder.build()
+    }
 
     fun datasetFor(entry: VaultEntity, form: ParsedForm): Dataset {
-        val builder = Dataset.Builder()
+        // The id comes back in SaveRequest.getDatasetIds(): the entry the form was filled from
+        // is a candidate for a password change. An entry id is not a secret.
+        val builder = Dataset.Builder().setId(entry.id)
         val view = presentation(entry.title, entry.usernameOrCardholder.ifBlank { null })
 
         form.usernameId?.let { builder.setValue(it, AutofillValue.forText(entry.usernameOrCardholder), view) }

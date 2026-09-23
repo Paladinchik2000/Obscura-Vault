@@ -51,6 +51,17 @@
             android:theme="@style/Theme.Obscura"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- Saving a login typed into another app: shows what will be saved and asks for the
+             app's own PIN if the vault is locked. Opened only through our own PendingIntent,
+             which carries nothing but a token; the login itself stays in process memory. -->
+        <activity
+            android:name=".autofill.AutofillSaveActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Obscura"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- BIND_AUTOFILL_SERVICE is the attribute of the service, not a uses-permission:
              it lets only the system bind to it. -->
         <service

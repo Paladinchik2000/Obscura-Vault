@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.view.autofill.AutofillManager;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -33,6 +34,16 @@ public class LoginActivity extends Activity {
         final TextView result = findViewById(R.id.result);
         final String expectedUsername = stringExtra(EXTRA_EXPECTED_USERNAME);
         final String expectedPassword = stringExtra(EXTRA_EXPECTED_PASSWORD);
+
+        findViewById(R.id.submit).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AutofillManager autofill = getSystemService(AutofillManager.class);
+                if (autofill != null) {
+                    autofill.commit();
+                }
+            }
+        });
 
         TextWatcher watcher = new TextWatcher() {
             @Override

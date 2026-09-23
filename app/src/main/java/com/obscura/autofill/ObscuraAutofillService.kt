@@ -4,6 +4,8 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.os.CancellationSignal
+import android.os.Handler
+import android.os.Looper
 import android.service.autofill.AutofillService
 import android.service.autofill.FillCallback
 import android.service.autofill.FillRequest
@@ -14,6 +16,10 @@ import androidx.annotation.RequiresApi
 import com.obscura.BuildConfig
 import com.obscura.autofill.AutofillResponses.Companion.autofillIds
 import com.obscura.autofill.match.CallerIdentity
+import com.obscura.autofill.save.PendingSave
+import com.obscura.autofill.save.PendingSaves
+import com.obscura.autofill.save.SaveOrigin
+import com.obscura.autofill.save.SavePolicy
 import com.obscura.security.AuthRepository
 import com.obscura.security.VaultLockedException
 import com.obscura.security.VaultSession
@@ -74,12 +80,12 @@ class ObscuraAutofillService : AutofillService() {
         // would look exactly like "no matching entries" and hide the failure.
         val identity = CallerIdentity.of(this, callerPackage)
         if (identity == null) {
-            callback.onSuccess(responses.datasetsResponse(emptyList(), form, pickPendingIntent(form, callerPackage)))
+            callback.onSuccess(responses.datasetsResponse(emptyList(), form, callerPackage, pickPendingIntent(form, callerPackage)))
             return
         }
 
         if (!VaultSession.isUnlocked.value) {
-            callback.onSuccess(responses.lockedResponse(form, unlockPendingIntent(form, callerPackage)))
+            callback.onSuccess(responses.lockedResponse(form, callerPackage, unlockPendingIntent(form, callerPackage)))
             return
         }
 
@@ -89,21 +95,75 @@ class ObscuraAutofillService : AutofillService() {
                 responses.datasetsResponse(
                     entries = responses.matchingEntries(target),
                     form = form,
+                    callerPackage = callerPackage,
                     search = pickPendingIntent(form, callerPackage)
                 )
             } catch (e: VaultLockedException) {
                 // Locked between the check and the query: ask for the unlock instead.
-                responses.lockedResponse(form, unlockPendingIntent(form, callerPackage))
+                responses.lockedResponse(form, callerPackage, unlockPendingIntent(form, callerPackage))
             }
             if (!cancellationSignal.isCanceled) callback.onSuccess(response)
         }
         cancellationSignal.setOnCancelListener { job.cancel() }
     }
 
-    /** Saving new logins is a separate task; answering keeps the framework from waiting. */
+    /**
+     * The user said yes to the system's "Save to Obscura?". Nothing is written here: the login is
+     * put aside in memory and our own screen opens, showing what will be saved and whether it
+     * replaces a password — the system dialog shows neither.
+     *
+     * Where the login came from is read here, from the structure the system hands over, because
+     * the save screen cannot tell: it is not started for a result, so it has no calling activity.
+     */
     override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
-        callback.onSuccess()
+        val structure = request.fillContexts.lastOrNull()?.structure
+        val callerPackage = structure?.activityComponent?.packageName
+        // Build.VERSION_CODES.P, same as SavePolicy.MIN_SDK, spelled out for lint: the calls below
+        // (getDatasetIds, onSuccess(IntentSender)) are API 28.
+        if (structure == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.P || !AuthRepository(this).isVaultInitialized) {
+            callback.onSuccess()
+            return
+        }
+
+        val form = AutofillFormParser.parse(structure)
+        val typed = AutofillFormParser.typedValues(structure, form)
+        val password = typed.password
+        if (callerPackage == null || password == null ||
+            !SavePolicy.acceptsSave(Build.VERSION.SDK_INT, callerPackage, packageName, password)
+        ) {
+            password?.fill('\u0000')
+            callback.onSuccess()
+            return
+        }
+
+        val origin = SaveOrigin.fromSaveRequest(
+            packageName = callerPackage,
+            identity = CallerIdentity.of(this, callerPackage),
+            webDomain = form.webDomain,
+            appLabel = appLabel(callerPackage)
+        )
+        val token = PendingSaves.put(
+            PendingSave(origin, typed.username.orEmpty(), password, request.datasetIds.orEmpty())
+        )
+        // A save nobody opens must not keep the password around.
+        Handler(Looper.getMainLooper()).postDelayed({ PendingSaves.expireStale() }, PendingSaves.LIFETIME_MS + 1_000L)
+
+        callback.onSuccess(savePendingIntent(token).intentSender)
     }
+
+    /** The app's own name, when it can be read; an app we cannot see has none for us. */
+    private fun appLabel(packageName: String): String? = runCatching {
+        packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
+    }.getOrNull()
+
+    /** Only the token travels: the login itself stays in this process. */
+    private fun savePendingIntent(token: String): PendingIntent =
+        PendingIntent.getActivity(
+            this,
+            token.hashCode(),
+            Intent(this, AutofillSaveActivity::class.java).putExtra(AutofillSaveActivity.EXTRA_TOKEN, token),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
     override fun onDestroy() {
         scope.cancel()

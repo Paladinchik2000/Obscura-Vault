@@ -21,6 +21,9 @@ data class ParsedForm(
     val isFillable: Boolean get() = passwordId != null || usernameId != null
 }
 
+/** A login as typed into a form; [password] is wiped by whoever takes it. */
+class TypedLogin(val username: String?, val password: CharArray?)
+
 /** Finds the username and password fields in an assist structure. */
 @RequiresApi(Build.VERSION_CODES.O)
 object AutofillFormParser {
@@ -50,6 +53,29 @@ object AutofillFormParser {
         for (i in 0 until structure.windowNodeCount) visit(structure.getWindowNodeAt(i).rootViewNode)
 
         return ParsedForm(usernameId = usernameId, passwordId = passwordId, webDomain = webDomain)
+    }
+
+    /**
+     * What the user left in the form's fields, as the save request reports it. The password comes
+     * out as a char array so the copy that is kept can be wiped; the framework's own string of it
+     * cannot be.
+     */
+    fun typedValues(structure: AssistStructure, form: ParsedForm): TypedLogin {
+        var username: String? = null
+        var password: CharArray? = null
+
+        fun visit(node: AssistStructure.ViewNode) {
+            val id = node.autofillId
+            val value = node.autofillValue?.takeIf { it.isText }?.textValue
+            if (id != null && value != null) {
+                if (id == form.usernameId) username = value.toString()
+                if (id == form.passwordId) password = CharArray(value.length) { value[it] }
+            }
+            for (i in 0 until node.childCount) visit(node.getChildAt(i))
+        }
+
+        for (i in 0 until structure.windowNodeCount) visit(structure.getWindowNodeAt(i).rootViewNode)
+        return TypedLogin(username, password)
     }
 
     private fun looksLikePassword(node: AssistStructure.ViewNode): Boolean {

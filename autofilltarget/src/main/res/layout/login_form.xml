@@ -23,6 +23,14 @@
         android:autofillHints="password"
         android:inputType="textPassword" />
 
+    <!-- What a real app does on sign-in: the autofill context is committed, and the system
+         decides whether to offer saving what was typed. -->
+    <Button
+        android:id="@+id/submit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sign in" />
+
     <!-- The verdict on what was filled; the values themselves never leave this app. -->
     <TextView
         android:id="@+id/result"
