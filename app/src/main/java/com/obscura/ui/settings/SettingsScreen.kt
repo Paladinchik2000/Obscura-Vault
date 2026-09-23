@@ -78,6 +78,7 @@ object SettingsTags {
 
     const val AUTOFILL_STATE = "settings_autofill_state"
     const val AUTOFILL_ACTION = "settings_autofill_action"
+    const val AUTOFILL_NO_SAVING = "settings_autofill_no_saving"
     const val RESET_OPEN = "settings_reset_open"
     const val RESET_BACKUP = "settings_reset_backup"
     const val RESET_CONTINUE = "settings_reset_continue"
@@ -504,6 +505,14 @@ private fun AutofillSection(state: AutofillState, onOpenSystemSettings: () -> Un
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.testTag(SettingsTags.AUTOFILL_STATE)
         )
+        if (!state.canSaveLogins) {
+            Text(
+                stringResource(R.string.settings_autofill_no_saving),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag(SettingsTags.AUTOFILL_NO_SAVING)
+            )
+        }
         Button(
             onClick = onOpenSystemSettings,
             enabled = !state.isEnabled,

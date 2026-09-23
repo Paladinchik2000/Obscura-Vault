@@ -3,10 +3,12 @@ package com.obscura.ui.settings
 import android.app.Application
 import android.os.Build
 import android.view.autofill.AutofillManager
+import androidx.annotation.VisibleForTesting
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.obscura.R
+import com.obscura.autofill.save.SavePolicy
 import com.obscura.security.AuthRepository
 import com.obscura.security.BiometricAuthenticator
 import com.obscura.security.BiometricAvailability
@@ -78,11 +80,13 @@ data class ResetState(
 }
 
 /**
- * Whether this device has autofill at all (API 26+) and whether Obscura is the chosen service.
+ * Whether this device has autofill at all (API 26+), whether Obscura is the chosen service, and
+ * whether saving new logins works here (API 28+, see SavePolicy).
  */
 data class AutofillState(
     val isSupported: Boolean = false,
-    val isEnabled: Boolean = false
+    val isEnabled: Boolean = false,
+    val canSaveLogins: Boolean = false
 )
 
 data class SettingsUiState(
@@ -212,6 +216,15 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     // ------------------------------------------------------------------ autofill
 
+    internal companion object {
+        /**
+         * The Android version the autofill section describes. Replaceable in tests: the text for
+         * API 26-27 has to be checked on an emulator that runs something newer.
+         */
+        @VisibleForTesting
+        internal var sdkInt: () -> Int = { Build.VERSION.SDK_INT }
+    }
+
     /**
      * Reads the state from AutofillManager; call when the screen starts and after coming back
      * from the system settings screen.
@@ -225,7 +238,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         val state = if (manager == null || !manager.isAutofillSupported) {
             AutofillState(isSupported = false, isEnabled = false)
         } else {
-            AutofillState(isSupported = true, isEnabled = manager.hasEnabledAutofillServices())
+            AutofillState(
+                isSupported = true,
+                isEnabled = manager.hasEnabledAutofillServices(),
+                canSaveLogins = SavePolicy.isSupported(sdkInt())
+            )
         }
         _state.update { it.copy(autofill = state) }
     }

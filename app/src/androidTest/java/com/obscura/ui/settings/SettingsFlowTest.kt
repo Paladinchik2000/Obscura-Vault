@@ -1,6 +1,7 @@
 package com.obscura.ui.settings
 
 import android.content.Context
+import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -145,6 +146,33 @@ class SettingsFlowTest {
         scenario.moveToState(Lifecycle.State.RESUMED)
 
         waitForText(string(R.string.settings_autofill_enabled))
+    }
+
+    /** Android 8: filling works, saving does not, and the section says so rather than staying quiet. */
+    @Test
+    fun onAndroid8TheAutofillSectionSaysSavingIsUnavailable() = withMainActivity {
+        SettingsViewModel.sdkInt = { Build.VERSION_CODES.O_MR1 }
+        try {
+            createVault()
+            compose.onNodeWithTag(DashboardTags.SETTINGS).performClick()
+            waitForTag(SettingsTags.AUTOFILL_STATE)
+            waitForText(string(R.string.settings_autofill_no_saving))
+        } finally {
+            SettingsViewModel.sdkInt = { Build.VERSION.SDK_INT }
+        }
+    }
+
+    @Test
+    fun whereSavingWorksTheSectionDoesNotWarn() = withMainActivity {
+        SettingsViewModel.sdkInt = { Build.VERSION_CODES.P }
+        try {
+            createVault()
+            compose.onNodeWithTag(DashboardTags.SETTINGS).performClick()
+            waitForTag(SettingsTags.AUTOFILL_STATE)
+            assertEquals(0, compose.onAllNodesWithTag(SettingsTags.AUTOFILL_NO_SAVING).fetchSemanticsNodes().size)
+        } finally {
+            SettingsViewModel.sdkInt = { Build.VERSION.SDK_INT }
+        }
     }
 
     // ------------------------------------------------------------------ helpers

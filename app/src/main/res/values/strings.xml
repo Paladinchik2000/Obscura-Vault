@@ -202,6 +202,7 @@
     <string name="settings_autofill_enabled">Obscura is your autofill service</string>
     <string name="settings_autofill_disabled">Obscura is not your autofill service</string>
     <string name="settings_autofill_action">Set Obscura as autofill service</string>
+    <string name="settings_autofill_no_saving">On this Android version Obscura fills logins, but cannot offer to save new passwords. Saving needs Android 9 or later.</string>
     <string name="settings_autolock_title">Auto-lock</string>
     <string name="settings_autolock_immediately">Immediately in the background</string>
     <string name="settings_autolock_30s">After 30 seconds</string>
