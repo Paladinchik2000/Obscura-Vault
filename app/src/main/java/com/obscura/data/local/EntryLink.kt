@@ -38,7 +38,13 @@ enum class LinkType(val id: String) {
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("entryId"), Index(value = ["type", "value"])]
+    indices = [
+        Index("entryId"),
+        // One link per entry and target. Unique, so linking the same entry to the same app again
+        // replaces the row (REPLACE in the DAO) instead of adding a second one. Leading with
+        // type and value keeps it usable for lookups by target.
+        Index(value = ["type", "value", "entryId"], unique = true)
+    ]
 )
 data class EntryLink(
     @PrimaryKey

@@ -1,6 +1,7 @@
 package com.obscura.data.local
 
 import androidx.room.testing.MigrationTestHelper
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.obscura.security.DatabaseKey
@@ -15,7 +16,8 @@ import javax.crypto.spec.SecretKeySpec
 
 /**
  * The vault database holds the only copy of the data, so schema changes migrate it instead of
- * dropping it. This opens a real version 1 database, migrates it and checks the rows survived.
+ * dropping it. These open a real database at an old version, migrate it and check the rows
+ * survived.
  */
 @RunWith(AndroidJUnit4::class)
 class VaultDatabaseMigrationTest {
@@ -98,4 +100,97 @@ class VaultDatabaseMigrationTest {
         }
         db.close()
     }
+
+    @Test
+    fun migrate2To3CollapsesDuplicateLinksAndKeepsTheNewest() {
+        helper.createDatabase(TEST_DB, 2).use { db ->
+            insertEntry(db, "e1")
+            insertEntry(db, "e2")
+            // What repeated "Remember this choice?" left behind before version 3: the same entry
+            // and app three times, the last one with the certificate seen most recently.
+            insertLink(db, "l1", "e1", "app", "com.example.app", "old1")
+            insertLink(db, "l2", "e1", "app", "com.example.app", "old2")
+            insertLink(db, "l3", "e1", "app", "com.example.app", "newest")
+            // Not duplicates: another entry for the same app, and a domain for the same entry.
+            insertLink(db, "l4", "e2", "app", "com.example.app", "cert")
+            insertLink(db, "l5", "e1", "domain", "example.com", "")
+        }
+
+        val db = helper.runMigrationsAndValidate(TEST_DB, 3, true, VaultMigrations.MIGRATION_2_3)
+
+        assertEquals(
+            listOf(
+                "e1|app|com.example.app|newest",
+                "e1|domain|example.com|",
+                "e2|app|com.example.app|cert"
+            ),
+            links(db)
+        )
+        db.close()
+    }
+
+    @Test
+    fun afterMigrationLinkingAgainReplacesInsteadOfAdding() {
+        helper.createDatabase(TEST_DB, 2).use { db -> insertEntry(db, "e1") }
+        val db = helper.runMigrationsAndValidate(TEST_DB, 3, true, VaultMigrations.MIGRATION_2_3)
+
+        // The DAO inserts links with REPLACE; a fresh id each time, as the picker creates one.
+        db.execSQL(
+            "INSERT OR REPLACE INTO entry_links (id, entryId, type, value, certSha256) " +
+                "VALUES ('a', 'e1', 'app', 'com.example.app', 'first')"
+        )
+        db.execSQL(
+            "INSERT OR REPLACE INTO entry_links (id, entryId, type, value, certSha256) " +
+                "VALUES ('b', 'e1', 'app', 'com.example.app', 'second')"
+        )
+
+        assertEquals(listOf("e1|app|com.example.app|second"), links(db))
+        db.close()
+    }
+
+    @Test
+    fun migrate1To3InOneGo() {
+        helper.createDatabase(TEST_DB, 1).use { db -> insertEntry(db, "e1") }
+
+        val db = helper.runMigrationsAndValidate(TEST_DB, 3, true, *VaultMigrations.ALL)
+
+        db.query("SELECT COUNT(*) FROM vault_entries").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(1, cursor.getInt(0))
+        }
+        db.close()
+    }
+
+    private fun insertEntry(db: SupportSQLiteDatabase, id: String) {
+        db.execSQL(
+            "INSERT INTO vault_entries (" +
+                "id, title, category, usernameOrCardholder, secretValue, urlOrCardNumber, " +
+                "notesOrCvv, expiryDate, createdAt, updatedAt, lastAccessedAt, isFavorite, tags" +
+                ") VALUES ('$id', 'Title', 'account', 'user', 'p', '', '', '', 1, 1, 1, 0, '')"
+        )
+    }
+
+    private fun insertLink(
+        db: SupportSQLiteDatabase,
+        id: String,
+        entryId: String,
+        type: String,
+        value: String,
+        cert: String
+    ) {
+        db.execSQL(
+            "INSERT INTO entry_links (id, entryId, type, value, certSha256) " +
+                "VALUES ('$id', '$entryId', '$type', '$value', '$cert')"
+        )
+    }
+
+    /** Every link as "entryId|type|value|cert", sorted. */
+    private fun links(db: SupportSQLiteDatabase): List<String> =
+        db.query("SELECT entryId, type, value, certSha256 FROM entry_links").use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add((0..3).joinToString("|") { cursor.getString(it) })
+                }
+            }.sorted()
+        }
 }

@@ -17,7 +17,7 @@ import javax.crypto.SecretKey
  * Instances are owned by [com.obscura.security.VaultSession]; don't cache them elsewhere.
  */
 @Keep
-@Database(entities = [VaultEntity::class, EntryLink::class], version = 2, exportSchema = true)
+@Database(entities = [VaultEntity::class, EntryLink::class], version = 3, exportSchema = true)
 abstract class VaultDatabase : RoomDatabase() {
 
     abstract fun vaultDao(): VaultDao

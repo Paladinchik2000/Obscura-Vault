@@ -31,5 +31,25 @@ object VaultMigrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2)
+    /**
+     * Makes a link unique per entry and target. Before this every "Remember this choice?" added a
+     * row, so a vault may already hold duplicates: they are collapsed first, keeping the newest
+     * (highest rowid — the last one written, which carries the certificate seen most recently),
+     * or the unique index could not be created.
+     */
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "DELETE FROM `entry_links` WHERE rowid NOT IN (" +
+                    "SELECT MAX(rowid) FROM `entry_links` GROUP BY `type`, `value`, `entryId`)"
+            )
+            db.execSQL("DROP INDEX IF EXISTS `index_entry_links_type_value`")
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_entry_links_type_value_entryId` " +
+                    "ON `entry_links` (`type`, `value`, `entryId`)"
+            )
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 }
